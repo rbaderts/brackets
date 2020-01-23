@@ -1,0 +1,263 @@
+{{define "home"}}
+{{template "home_header"}}
+
+<!--
+      height: 1134px;
+      width: 1144;
+      -->
+
+<style>
+
+    fieldset {
+        margin: 8px;
+        border: 1px solid silver;
+        padding: 8px;
+        border-radius: 4px;
+    }
+
+    legend {
+        padding: 2px;
+    }
+
+    #container-canvas {
+        overflow: auto;
+        border: 1px solid;
+    }
+    #auth-div {
+        overflow: auto;
+        border: 1px solid;
+    }
+    canvas{
+      display: block;
+    }
+</style>
+
+<input type=hidden id="TournamentID" name="TournamentID" value='{{.TournamentID}}'/>
+
+<body style="padding-top:60px;">
+
+{{template "nav" .UserName}}
+
+<div class="container-fluid">
+
+     <div class="row" style="margin:0px;">
+
+         <!--
+         <div class="sidenav col-md-1 col-xl-1 sidebar" >
+             <div class="nav flex-column">
+                 <a id="new-tournament" class="nav-link" href="/tournaments/{{.TournamentID}}/bracketlive">
+                     New Tournament
+                 </a>
+                 <br/>
+                 <br/>
+                 <a class="nav-link" href="#">
+                     Help
+                 </a>
+             </div>
+
+         </div>
+         -->
+<!--         <div class="col-md-7 offset-md-1 col-xl-6 offset-xl-1"> -->
+             <div class="col-md-8 col-xl-7" style="margin: 10px;">
+
+             <h4 style="text-align: center;">Tournaments</h4>
+
+             <button id="new-tournament" type="button" class="btn btn-primary" href="/tournaments/{{.TournamentID}}/bracketlive">
+                 Create
+             </button>
+
+             <!--
+             <div class="container" >
+                 <input class="btn btn-primary" type="submit" id="create-button" value="New Tournament...">
+             </div>
+             -->
+
+             <table
+                     id="tournaments_table"
+                     class="table-striped table-dark"
+                     data-search="false"
+                     data-show-refresh="true"
+                     data-show-toggle="false"
+                     data-show-fullscreen="false"
+                     data-show-columns="false"
+                     data-show-columns-toggle-all="false"
+                     data-detail-view="true"
+                     data-show-export="false"
+                     data-click-to-select="true"
+                     data-detail-formatter="detailFormatter"
+                     data-minimum-count-columns="2"
+                     data-show-pagination-switch="false"
+                     data-pagination="false"
+                     data-id-field="id"
+                     data-page-list="[10, 25, 50, 100, all]"
+                     data-show-footer="false"
+                     data-side-pagination="server"
+                     data-url="/api/tournaments"
+                     data-response-handler="responseHandler">
+             </table>
+         </div>
+
+         <div class="col-md-3" style="margin: 20px; padding: 10px" id="auth-div">
+             <h3>Auth0 Example</h3>
+             <p>Zero friction identity infrastructure, built for developers</p>
+             <a href="/login">SignIn</a>
+         </div>
+
+    </div>
+
+
+
+</div>
+
+{{template "home_footer"}}
+
+
+    <script>
+
+        var $table = $('#tournaments_table')
+        var $remove = $('#remove')
+        var selections = []
+
+        function getIdSelections() {
+            return $.map($table.bootstrapTable('getSelections'), function (row) {
+                return row.id
+            })
+        }
+
+        function responseHandler(res) {
+            $.each(res.rows, function (i, row) {
+                row.state = $.inArray(row.id, selections) !== -1
+            })
+            return res
+        }
+
+        function detailFormatter(index, row) {
+            var html = []
+            $.each(row, function (key, value) {
+                html.push('<p><b>' + key + ':</b> ' + value + '</p>')
+            })
+            return html.join('')
+        }
+
+        function operateFormatter(value, row, index) {
+            return [
+                '<a class="like" href="javascript:void(0)" title="Like">',
+                '<i class="fa fa-heart"></i>',
+                '</a>  ',
+                '<a class="remove" href="javascript:void(0)" title="Remove">',
+                '<i class="fa fa-trash"></i>',
+                '</a>'
+            ].join('')
+        }
+
+        window.operateEvents = {
+            'click .like': function (e, value, row, index) {
+                alert('You click like action, row: ' + JSON.stringify(row))
+            },
+            'click .remove': function (e, value, row, index) {
+                $table.bootstrapTable('remove', {
+                    field: 'id',
+                    values: [row.id]
+                })
+            }
+        };
+
+        $('#new-tournament').on('click', function (e) {
+
+            e.preventDefault(); // cancel the link itself
+
+            var url = "/api/tournaments";
+            $.post( url,
+                function (data) {
+                    var page = "/tournaments/"+data.id.toString()+"/control";
+                    window.location.assign(page)
+                });
+        });
+
+        window.onload = function () {
+            var url = "/api/tournaments";
+            var $table = $('#tournaments_table')
+
+            $.ajax
+            ({
+                type: "GET",
+                //the url where you want to sent the userName and password to
+                url: url,
+                dataType: 'json',
+                async: false,
+                success: function (data) {
+                    $table.bootstrapTable('refresh')
+                }
+            });
+        };
+        function initTable() {
+            $table.bootstrapTable('destroy').bootstrapTable({
+                height: 550,
+                locale: $('#locale').val(),
+                columns: [
+                    [{
+                        field: 'state',
+                        checkbox: true,
+//                        rowspan: 2,
+                        align: 'center',
+                        valign: 'middle'
+                    }, {
+                        title: 'ID',
+                        field: 'id',
+//                        rowspan: 2,
+                        align: 'center',
+                        valign: 'middle',
+                        sortable: true
+                    }, {
+                        field: 'name',
+                        title: 'Name',
+                        sortable: true,
+                        align: 'center'
+                    }, {
+                        field: 'createdAt',
+                        title: 'Created',
+                        sortable: true,
+                        align: 'center'
+                    }, {
+                        field: 'operate',
+                        title: 'Item Operate',
+                        align: 'center',
+                        clickToSelect: false,
+                        events: window.operateEvents,
+                        formatter: operateFormatter
+                    }]
+                ]
+            })
+            $table.on('check.bs.table uncheck.bs.table ' +
+                'check-all.bs.table uncheck-all.bs.table',
+                function () {
+                    $remove.prop('disabled', !$table.bootstrapTable('getSelections').length)
+
+                    // save your data, here just save the current page
+                    selections = getIdSelections()
+                    // push or splice the selections if you want to save all data selections
+                })
+            $table.on('all.bs.table', function (e, name, args) {
+                console.log(name, args)
+            })
+            $remove.click(function () {
+                var ids = getIdSelections()
+                $table.bootstrapTable('remove', {
+                    field: 'id',
+                    values: ids
+                })
+                $remove.prop('disabled', true)
+            })
+        }
+
+        $(function() {
+            initTable()
+            $('#locale').change(initTable)
+        })
+
+    </script>
+
+</body>
+</html>
+
+{{end}}

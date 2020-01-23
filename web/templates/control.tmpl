@@ -1,0 +1,275 @@
+{{define "control"}}
+{{template "control_header"}}
+
+<style>
+    td, tr {
+      height: 20px;
+    }
+    a {
+        text-align: center;
+    }
+    html, body
+    {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+</style>
+
+
+<input type=hidden id="TournamentID" name="TournamentID" value='{{.TournamentID}}'/>
+
+
+<body style="padding-top:60px;">
+{{template "nav" .UserName}}
+
+
+  <div class="container-fluid">
+
+      <div class="row flex-xl-nowrap" style="margin: 10px;">
+          <div class="col-md-12">
+              <h2 style="text-align: center;">Tournament Details</h2>
+               <br/>
+          </div>
+      </div>
+<!--    <div class="row no-gutters" style="height: 100%;">-->
+
+<!--      <div class="col-md-1 col-xl-2 bd-sidebar">-->
+
+          <!--
+      <div class="sidenav col-md-1 col-xl-1 sidebar" >
+          <div class="nav flex-column">
+ii              <a class="nav-link active" href="/home">Home</a>
+              <a id="generate" class="nav-link" href="/tournaments/{{.TournamentID}}/bracketlive">Bracket</a>
+              <br/>
+              <br/>
+              <a class="nav-link" href="#">
+                  Help
+              </a>
+          </div>
+      </div>
+      -->
+
+<!--        <nav class="col-md-1 d-none d-md-block navbar-dark bg-primary sidebar" style="height: 100%;"> -->
+      <div class="row flex-xl-nowrap" style="margin: 10px;">
+          <button id="brackets" type="button" class="btn btn-primary" href="/tournaments/{{.TournamentID}}/bracketlive">
+              Bracket
+          </button>
+      </div>
+      <div class="row flex-xl-nowrap" style="margin: 10px;">
+
+      <main style="padding-left: 20px;" class="col-md-12 col-xl-12" role="main">
+          <br/>
+          <div class="row flex-xl-nowrap">
+              <div class="col-md-4" style="border-style: double;border-width: 1px; margin: 1px;padding: 2px;">
+                  <h3 style="text-align: center;">Participants</h3>
+                  <div class="row flex-xl-nowrap" style="padding: 2px; margin: 0px;">
+                      <br/>
+                      <br/>
+                      <div class="input-group mb-3" style="margin-left: 4px;">
+                          <input id="add-user" type="text" class="form-control form-control-sm" placeholder="Player1,Player2,...." aria-label="User name list" aria-describedby="add-button">
+                          <div class="input-group-append">
+                              <button class="btn btn-primary btn-sm" type="button" id="add-button">Add</button>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="row flex-xl-nowrap" style="padding: 2px; margin: 0px">
+                      <div style="margin-top: 10px;padding-right: 0px;" class="col-md-3">
+                          <button style="float:right;" id="randomize-button" class="btn btn-primary btn-sm" type="button">Randomize</button>
+                          <button style="float:right; margin-top:2px;" id="delete-button" class="btn btn-primary btn-sm" type="button">Delete</button>
+                      </div>
+                      <div style="margin:2px; margin-top:10px; padding: 2px;" class="col-md-9">
+                          <table data-toggle="table"
+                                 data-sort-name="number"
+                                 data-sort-order="asc"
+                                data-id-field="id"
+                                data-select-item-name="id"
+                                data-url="/api/tournaments/{{.TournamentID}}/users"
+                                class="table table-bordered table-sm" id="players_table">
+                            <thead>
+                                <tr>
+                                  <th style="align: center;"
+                                      data-field="state" data-checkbox="true"></th>
+                                  <th data-halign="center" data-field="number">Number</th>
+                                  <th data-width="200" data-halign="center" data-field="name">Name</th>
+                                  <th data-click-to-select="false"
+                                      data-formatter="operateFormatter"
+                                      data-events="operateEvents"
+                                      data-halign="center"
+                                      data-field="operate">Operations</th>
+                                </tr>
+                             </thead>
+                         </table>
+                      </div>
+                  </div>
+              </div>
+              <div class="col-md-4">
+                  <div class="input-group input-group-sm mb-3">
+                      <div class="input-group-prepend">
+                          <span class="input-group-text" id="inputGroup-sizing-sm">Entry Fee</span>
+                      </div>
+                      <input id="entryfee-text" type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm">
+                  </div>
+                  <div class="input-group input-group-sm mb-3">
+                      <div class="input-group-prepend">
+                          <span class="input-group-text" id="inputGroup-sizing-sm">Paying places</span>
+                      </div>
+                      <input id="payingplaces-num" type="number" class="form-control" aria-describedby="inputGroup-sizing-sm">
+                  </div>
+              </div>
+          </div>
+      </main>
+    </div>
+  </div>
+
+
+{{template "control_footer"}}
+
+
+<script>
+
+    var $table = $('#players_table');
+
+
+    $('#brackets').on('click', function (e) {
+        e.preventDefault(); // cancel the link itself
+
+        var url = "/api/tournaments/{{.TournamentID}}/generate";
+        $.ajax
+            ({
+                type: "PUT",
+                //the url where you want to sent the userName and password to
+                url: url,
+                dataType: 'json',
+                async: false,
+                data: null,
+                success: function () {
+                    var page = "/tournaments/{{.TournamentID}}/bracketlive";
+                    window.location.assign(page)
+                    }
+            });
+    });
+
+    $('#randomize-button').on('click', function () {
+
+        var $table = $('#players_table')
+        var url = "/api/tournaments/{{.TournamentID}}/randomize";
+
+        $.ajax
+        ({
+            type: "PUT",
+            //the url where you want to sent the userName and password to
+            url: url,
+            dataType: 'json',
+            async: false,
+            success: function (data) {
+                $table.bootstrapTable('refresh')
+            }
+        });
+
+    });
+
+
+    $('#delete-button').on('click', function () {
+
+      var $table = $('#players_table')
+
+      var selections = JSON.stringify($table.bootstrapTable('getSelections'))
+
+      var url = "/api/tournaments/{{.TournamentID}}/users";
+
+        $.ajax
+            ({
+                type: "DELETE",
+                //the url where you want to sent the userName and password to
+                url: url,
+                dataType: 'json',
+                async: false,
+                data: selections,
+                success: function (data) {
+                     $table.bootstrapTable('refresh')
+                }
+            });
+
+     });
+
+    $('#add-button').on('click', function () {
+
+        var adduser = document.getElementById("add-user");
+        var newusers = adduser.value;
+        var usernames = newusers.split(",");
+        var namearray = []
+        var url = "/api/tournaments/{{.TournamentID}}/users";
+        var $table = $('#players_table')
+
+        adduser.value = "";
+        for (let nm of usernames) {
+            namearray.push( {"name":nm})
+        }
+
+        $.ajax
+            ({
+                type: "POST",
+                //the url where you want to sent the userName and password to
+                url: url,
+                dataType: 'json',
+                async: false,
+                data: JSON.stringify(namearray),
+                success: function (data) {
+                     $table.bootstrapTable('refresh')
+                }
+            });
+
+    });
+
+    function operateFormatter(value, row, index) {
+        return [
+            '<a class="money" href="javascript:void(0)" title="Money">',
+            '<i class="fa fa-money"></i>',
+            '</a>  ',
+            '<a class="remove" href="javascript:void(0)" title="Remove">',
+            '<i class="fa fa-trash"></i>',
+            '</a>'
+        ].join('')
+    };
+
+    window.operateEvents = {
+        'click .money': function (e, value, row, index) {
+
+            console.log('You click paid action, value: ' + value + ', row: ' + JSON.stringify(row));
+        },
+        'click .remove': function (e, value, row, index) {
+
+            var url = "/api/tournaments/{{.TournamentID}}/users";
+            let users = [row];
+
+            let data = JSON.stringify(users);
+            $.ajax
+            ({
+                type: "DELETE",
+                url: url,
+                dataType: 'json',
+                async: false,
+                data: data,
+                success: function (data) {
+                    $table.bootstrapTable('refresh')
+                }
+            });
+
+            /*
+            $table.bootstrapTable('remove', {
+                field: 'id',
+                values: [row.id]
+            })
+            */
+        }
+    };
+
+   var control = new ControlPage()
+
+</script>
+</body>
+</html>
+
+{{end}}

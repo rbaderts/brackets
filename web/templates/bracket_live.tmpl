@@ -1,0 +1,170 @@
+{{define "bracket_live"}} {{template "bracket_live_header"}}
+
+<style>
+    a {
+        text-align: center;
+    }
+
+    /*
+    .sidenav {
+        height: 100%;
+        width: 144px;
+        position: fixed;
+        z-index: 1;
+        top: 74px;
+        left: 0;
+        background-color: #111;
+        overflow-x: hidden;
+        padding-top: 20px;
+    }
+    */
+
+    /*
+    .main {
+        margin-left: 132px;
+        padding: 0px 0px;
+    }
+    */
+
+    #container-canvas {
+        overflow: auto;
+    }
+    canvas{
+        display: block;
+    }
+
+    #bracket_canvas {
+        z-index:1;
+        display: inline-block;
+        overflow: scroll;
+    /*
+    max-width: 100%   !important;
+    width: 100%;
+    height: 100%
+    */
+}
+
+:-webkit-full-screen {
+    background-color: white;
+}
+
+/* Firefox syntax */
+    :-moz-full-screen {
+        background-color: white;
+    }
+
+    /* IE/Edge syntax */
+    :-ms-fullscreen {
+        background-color: white;
+    }
+
+    /* Standard syntax */
+    :fullscreen {
+        background-color: white;
+    }
+
+    #fullscreen_div {
+        position: absolute;
+        z-index:2;
+        left: 4px;
+        top: 4px;
+        border-width: 0px;
+        pointer-events: none;
+    }
+
+</style>
+
+
+<input type=hidden id="TournamentID" name="TournamentID" value='{{.TournamentID}}'/>
+
+<body style="padding-top:60px;">
+
+{{template "nav" .UserName}}
+<div class="container-fluid h-100">
+    <!--<div class="row no-gutters" style="height: 100%;">-->
+
+    <!--
+        <div class="sidenav col-md-1 col-xl-1 sidebar" >
+            <div class="nav flex-column">
+                <a class="nav-link active" href="/home">Home</a>
+                <a class="nav-link" href="/tournaments/{{.TournamentID}}/control">
+                    Tournament
+                </a>
+                <br/>
+                <br/>
+                <a class="nav-link" href="#">
+                    Help
+                </a>
+            </div>
+        </div>
+    -->
+
+<!--        <main class="col-md-11 main">-->
+        <main class="col-md-12 col-xl-12 h-100" style="padding: 8px" role="main">
+            <div id="container-canvas" class="h-100">
+                <canvas id="bracket_canvas"></canvas>
+                <input id="fullscreen_div" type="image" src="/static/img/Fullscreen.png"
+                       name="fullscreen_button" alt="Submit" width="40" height="40">
+             </div>
+        </main>
+    </div>
+
+</div>
+
+{{template "bracket_live_footer"}}
+
+
+    <script>
+
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            var expires = "expires="+d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+        $('#home-button').on('click', function () {
+          var page = "/home";
+          window.location.assign(page)
+        });
+
+        $('#control-button').on('click', function () {
+             id = window.getTournamentID();
+             var page = "/tournaments/"+id+"/control";
+             window.location.assign(page)
+        });
+
+        $('#logout-button').on('click', function () {
+            var page = "/logout";
+            window.location.assign(page)
+        });
+
+
+        $('#save-button').on('click', function () {
+            id = window.getTournamentID();
+            var url = "/api/tournaments/" + id + "/save";
+            $.post( url,
+               function () {
+                  alert("Saved Tournament");
+               });
+        });
+
+        $('#load-button').on('click', function () {
+            id = window.getTournamentID();
+            var url = "/api/tournaments/"+id+"/load/tournament.json";
+            $.get( url,
+              function (data) {
+                  alert("loaded Tournament");
+                  console.log(data)
+                  self.bracketBase.data = data
+                  self.bracketBase.rootNode = new Game(data.Bracket)
+                  self.bracketBase.render(data, canvas)
+              });
+        });
+
+    </script>
+
+</body>
+</html>
+
+{{end}}

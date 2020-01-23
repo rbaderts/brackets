@@ -1,0 +1,42 @@
+{{define "bracket_edit"}}
+{{template "header"}}
+
+
+<input type=hidden id="TournamentID" name="TournamentID" value='{{.TournamentID}}'/>
+
+
+  <div class="container container-main">
+
+     <div class="row">
+
+
+         <div class="col-md-12"
+              style="border: 1px solid #000; padding: 2px;" id="canvas_container; position: relative">
+             <div style="max-height: 1200;max-width:1400;overflow: auto;">
+              <canvas id="bracket_canvas" width="1200" height="1400"></canvas>
+              </div>
+         </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-11" id="lift2_4_div">
+           <input type="submit" id="newsimsubmit" value="New Simulation">
+        </div>
+    </div>
+
+</div>
+
+{{template "bracket_edit_footer"}}
+
+
+    <script>
+
+      var canvas = document.getElementById("bracket_canvas")
+
+    </script>
+
+</body>
+</html>
+
+{{end}}
