@@ -193,22 +193,22 @@ func (this *Node) CalculateDepth() int {
 }
 
 func (this *Node) calcLevel() int {
-	fmt.Printf("calcLevel id: %d\n", this.Id)
+	//fmt.Printf("calcLevel id: %d\n", this.Id)
 
 	if this.Level != 0 {
-		fmt.Printf("calcLevel this.Level = %d\n", this.Level)
+		//fmt.Printf("calcLevel this.Level = %d\n", this.Level)
 		return this.Level
 	}
 
 	if this.Parent.Id == 0 {
-		fmt.Printf("calcLevel return 1\n")
+		//fmt.Printf("calcLevel return 1\n")
 		return 1
 	}
 
 	// cache the calculaated level in the node
 	parentLevel := this.Parent.node.calcLevel()
 	this.Level = parentLevel + 1
-	fmt.Printf("calcLevel cached Level %d, for id: %d\n", this.Level, this.Id)
+	//fmt.Printf("calcLevel cached Level %d, for id: %d\n", this.Level, this.Id)
 	return this.Level
 
 }
@@ -338,7 +338,7 @@ func (this *Node) innerNodes(nodes *[]NodeId) {
 		return
 	} else {
 
-		fmt.Printf("adding node %d level %d\n", this.Id, this.Level)
+		//fmt.Printf("adding node %d level %d\n", this.Id, this.Level)
 		(*nodes) = append((*nodes), this.Id)
 		//inners = append(inners, this.Id)
 
@@ -353,8 +353,8 @@ func (this *Node) innerNodes(nodes *[]NodeId) {
 
 func (this *Node) SetParent(parent *Node) {
 	this.Parent = NodeReference{parent.Id, 1, parent}
-	fmt.Printf("Setting parent of Node %d of type %s to node %d\n", this.Id,
-		this.Type, parent.Id)
+	//fmt.Printf("Setting parent of Node %d of type %s to node %d\n", this.Id,
+	//		this.Type, parent.Id)
 
 	/*`
 	if (parent.Level >= 0) {
@@ -392,7 +392,7 @@ func (this *Node) SetLeft(left *Node) {
 		this.Depth = left.Depth + 1
 	}
 
-	fmt.Printf("Setting Left child of node %d to node %d\n", this.Id, left.Id)
+	//fmt.Printf("Setting Left child of node %d to node %d\n", this.Id, left.Id)
 	left.SetParent(this)
 }
 
@@ -406,7 +406,7 @@ func (this *Node) SetRight(right *Node) {
 	if right.Depth > this.Depth-1 {
 		this.Depth = right.Depth + 1
 	}
-	fmt.Printf("Setting Right child of node %d to node %d\n", this.Id, right.Id)
+	//fmt.Printf("Setting Right child of node %d to node %d\n", this.Id, right.Id)
 	right.SetParent(this)
 }
 
@@ -425,7 +425,7 @@ func (this *TreeContext) NewNode(t NodeType, parent *Node, dropGameId NodeId, pa
 		this.IdCounter += 1
 
 	}
-	fmt.Printf("NewNode: Id: %d, type: %v, parentId: %d, drop: %d, level: %d, participant: %d\n",
+	Logger.Infof("NewNode: Id: %d, type: %v, parentId: %d, drop: %d, level: %d, participant: %d\n",
 		id, t, parentId, dropGameId, level, participantNumber)
 
 	node := new(Node)
@@ -481,7 +481,7 @@ func (this *Node) calculateGridSpans() Span {
 	} else {
 		this.GridSpan.Lower = 1
 	}
-	fmt.Printf("nodeId: %d, gridspan = %v\n", this.Id, this.GridSpan)
+	//fmt.Printf("nodeId: %d, gridspan = %v\n", this.Id, this.GridSpan)
 	return this.GridSpan
 }
 
@@ -519,7 +519,7 @@ func (this *Node) calculateSpans() Span {
 		this.Span.Lower = 20
 	}
 
-	fmt.Printf("nodeId: %d, span = %v\n", this.Id, this.Span)
+	///fmt.Printf("nodeId: %d, span = %v\n", this.Id, this.Span)
 
 	return this.Span
 }

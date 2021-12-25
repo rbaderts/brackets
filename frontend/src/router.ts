@@ -48,8 +48,8 @@ export default router
 
 import {createRouter, createWebHistory} from 'vue-router';
 
-import Home from "./views/Home.vue"
-import TournamentView from "./views/TournamentView.vue"
+import Home from './views/Home.vue'
+import TournamentView from './views/TournamentView.vue'
 //import TournamentList from "./components/TournamentList.vue"
 
 const router = createRouter({

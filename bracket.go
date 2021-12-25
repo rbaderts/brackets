@@ -18,7 +18,7 @@ type Bracket struct {
 
 	Size int `json:"size"`
 
-	Participants []ParticipantNumber `json:"participants"`
+	//	Participants []ParticipantNumber `json:"participants"`
 
 	//	WinnerSideRootNode NodeId `json:"winnersSideRootNode"`
 	//	LosersSideRootNode NodeId `json:"losersSideRootNode"`
@@ -26,8 +26,8 @@ type Bracket struct {
 	Degree       int          `json:"degree"`
 	Buys         int          `json:"buys"`
 	Depth        int          `json:"depth"`
-	WinnersDepth int          `json:"winners-depth"`
-	LosersDepth  int          `json:"losers-depth"`
+	WinnersDepth int          `json:"winnersDepth"`
+	LosersDepth  int          `json:"losersDepth"`
 	Context      *TreeContext `json:"treeContext"`
 	tournament   *Tournament
 }
@@ -60,7 +60,7 @@ func (this *Bracket) RecordResult(node *Node, winnerSide int) error {
 	//winnerPlayerId = this.Participants[winner].PlayerId
 	//loserPlayerId = this.Participants[loser].PlayerId
 
-	fmt.Printf("setting node (%d) player to %d\n", node.Id, winner)
+	//fmt.Printf("setting node (%d) player to %d\n", node.Id, winner)
 	node.Participant = winner
 
 	var dropNode *Node = nil
@@ -69,7 +69,7 @@ func (this *Bracket) RecordResult(node *Node, winnerSide int) error {
 		dropNode = this.GetNode(dropNodeId)
 	}
 	if dropNode != nil {
-		fmt.Printf("dropNode id = %d, setting player to %d\n", dropNode.Id, loser)
+		//fmt.Printf("dropNode id = %d, setting player to %d\n", dropNode.Id, loser)
 		dropNode.Participant = loser
 	}
 
@@ -142,7 +142,7 @@ func (this *Bracket) AddPlayer(pNumber ParticipantNumber) error {
 	_ = newNode
 
 	//	this.newNode()/new
-	this.Participants = append(this.Participants, pNumber)
+	//this.Participants = append(this.Participants, pNumber)
 
 	return nil
 
@@ -159,9 +159,7 @@ func (this *Bracket) AddNode(node *Node) {
 }
 
 func (this *Bracket) newNode(t NodeType, parent *Node, dropGameId NodeId, participantNumber ParticipantNumber, tier int, level int) *Node {
-	fmt.Printf("newNode\n")
 	node := this.Context.NewNode(t, parent, dropGameId, participantNumber, tier, level)
-	fmt.Printf("new Id = %d\n", node.Id)
 	this.Nodes[node.Id] = node
 	if level > this.Depth {
 		this.Depth = this.Depth + 1
@@ -209,9 +207,9 @@ func (this *Bracket) SetNodeDrop(node *Node, dropNodeId NodeId) {
 	node.Drop = dropNodeId
 	dropNode := this.GetNode(dropNodeId)
 	dropNode.Drop = node.Id
-	fmt.Printf("Setting Node %d to drop to %d\n", node.Id, dropNodeId)
+	Logger.Infof("Setting Node %d to drop to %d\n", node.Id, dropNodeId)
 
-	fmt.Printf("Setting Node %d as recipient of drop from %d\n", dropNodeId, node.Id)
+	Logger.Infof("Setting Node %d as recipient of drop from %d\n", dropNodeId, node.Id)
 
 }
 
@@ -246,8 +244,8 @@ func ComputeWTier1(size int, players int) int {
 }
 
 func ComputeWTier2(size int, players int) int {
-	vm := int(math.Min(float64((size)-(size-players)), float64(size>>2)))
-	fmt.Printf("vm = %d\n", vm)
+	//vm := int(math.Min(float64((size)-(size-players)), float64(size>>2)))
+	//fmt.Printf("vm = %d\n", vm)
 	return size >> 2
 }
 
@@ -269,7 +267,7 @@ func ComputeDegree(size int) int {
 	d := 1
 	for {
 		if s == 0 {
-			fmt.Printf("degree for size %d  = %d\n", size, d)
+			//fmt.Printf("degree for size %d  = %d\n", size, d)
 			return d
 		}
 		d += 1

@@ -128,14 +128,10 @@
 
 
 <template>
-
-<div>
-
-  <template v-if="loading">
+  <div v-if="loading">
       <h1> Loading... </h1>
-  </template>
-  <template v-else> 
-  <div>
+  </div>
+  <div v-else >
     <q-page>
       <q-tabs
         v-model="tab"
@@ -170,9 +166,6 @@
     </q-page>
     </div>
   </template>
-</div>
-
-</template>
 
 
 <style scoped>

@@ -69,7 +69,7 @@ func GetTournamentId(r *http.Request) (int64, error) {
 }
 func GetUserId(ctx context.Context) *int64 {
 	userId, ok := ctx.Value(userIdContextKey).(int64)
-	fmt.Printf("userId = %d\n", userId)
+	//fmt.Printf("userId = %d\n", userId)
 	if !ok {
 		// Log this issue
 		return nil
@@ -111,18 +111,8 @@ func Server() {
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Use(middleware.Logger)
 
-	//	r.Use(jwtauth.Verifier(tokenAuth))
-
-	//	FileServer(r, "/", htmlBox)
-	//	FileServer(r, "/static", assetBox)
 	FileServer(r, "/static", http.Dir("./web"))
 	FileServer(r, "/resources/", http.Dir("./src"))
-	//FileServer(r, "/brackets/", http.Dir("./build"))
-
-	//OptionHandler := func(w http.ResponseWriter, _ *http.Request) {
-	//	fmt.Printf("OptionHandler\n")
-	//return
-	////}
 
 	OptionHandler := func(w http.ResponseWriter, _ *http.Request) {
 		fmt.Printf("OptionHandler\n")
@@ -138,10 +128,8 @@ func Server() {
 		r.Get("/privacy", Handler{env, PrivacyHandler}.ServeHTTP)
 	})
 
-	//[]byte("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAosL3+U8ZfT7xx9hqO0qRjxA8xLneYS5aJ8qX87yECxhHzJ/fSJiKOQ7eCFwuoJ6lP+xOL1FHphHl6nhe4MHfpsVEa26oACGB+aDz+uguZdUG8NlXilKMfvCkWABht3d2OnyaWRie6Ngmwc3mFRdq1+I9/F3OjwS2M1PpG+WN5xGRne8fWIMgNfvqF8svo4UpcIKy3sBFZrzEe24JH7s+BJY3BPmIoBJz9cacnUNjhp2jneIvogIy0qHmUK7FMDIQeOL9EUdO/a//WFEpz1mLf0cWAj9zbLffx/tzM3y1rcMB2CIi6I+NE9ng5ixnyJdT3z7ikS75xTq2zHZEaejk5QIDAQAB"),
-	//	keycloakPublicKey := []byte("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApcyYwEP63rEHGwjJEI/+SxZDIPlksyaPvHCJ8zm9vJqmTXhhbM8+g9V1ZxwAkWXXiEPYCEYdAQy/02WFW5dE97PU/jNJmFPAP2YpKlD92v6kH/ixk6hDMp5xt4OYNgbUudsr9vlsNhV/TCIHOaRJtBBw4pFocFFZakd1/7lh8KMCHF73MAZcWLA0E4l5yA12XY6by+SV/+tMo5gC+xtlHWsnyGnFUkO2xdP0UqplvaOknK/a9amI8F4nMdQw6ooBtWQo8pXy4Vjkp9mQw5VFPrQk2Nu9D7syrpKPbfDEnhLztt5dL1qzLeagGnW0xey6d7Ag+BG2h711T6l8UagsXQIDAQAB")
 	keycloakPublicKey, _ := GetKeycloakRSAKey()
-	fmt.Printf("keycloakPublicKey = %s\n", keycloakPublicKey)
+	//fmt.Printf("keycloakPublicKey = %s\n", keycloakPublicKey)
 
 	tokenAuth := jwtauth.New("HS256", keycloakPublicKey, nil)
 
@@ -160,22 +148,13 @@ func Server() {
 
 		r.Route("/callbacks", func(r chi.Router) {
 			/*  This call setups a callback channel for the session associated with the request */
-			//r.Get("/", Handler{env, WebserviceHandler}.ServeHTTP)
 
 			r.Route("/{tournamentID:[0-9]+}", func(r chi.Router) {
-				//r.Post("/", Handler{env, RegisterCallbackHandler}.ServeHTTP)
-				//r.Delete("/", Handler{env, DeleteCallbackHandler}.ServeHTTP)
 			})
-			/*  This call registers interest in a topic for a channel, a registration ID is returned */
-
-			/*  This call registers interest in a topic for a channel, a registration ID is returned */
 		})
 
 		r.Route("/tournaments/{tournamentID:}", func(r chi.Router) {
-			//			r.Use(DBConnection, TournamentCtx)
 			r.Use(TournamentCtx)
-			//			r.Get("/", Handler{env, TournamentRenderHandler}.ServeHTTP)
-			//			r.Get("/control", Handler{env, ControlRenderHandler}.ServeHTTP)
 
 			/* This endpoint opens up a websocket to the client and
 			   registers the client to receive update events for
@@ -191,7 +170,6 @@ func Server() {
 		})
 
 		r.Route("/api", func(r chi.Router) {
-			//			r.Use(transaction)
 			r.Use(DBConnection, AuthTokenVerifier(tokenAuth), transaction, UserInterceptor)
 			r.Post("/users/loginuser", Handler{env, LoginUserHandler}.ServeHTTP)
 			r.Get("/users/{userID}", Handler{env, GetUserHandler}.ServeHTTP)
@@ -199,8 +177,6 @@ func Server() {
 			r.Get("/players", Handler{env, GetPlayersHandler}.ServeHTTP)
 			r.Post("/players", Handler{env, CreatePlayerHandler}.ServeHTTP)
 			r.Get("/users/{userID}", Handler{env, GetUserHandler}.ServeHTTP)
-			//			r.Get("/players/{playerID}", Handler{env, GetPlayerHandler}.ServeHTTP)
-			//			r.Delete("/players/{playerID}", Handler{env, DeletePlayerHandler}.ServeHTTP)
 
 			r.Route("/players/{playerID:[0-9]+}", func(r chi.Router) {
 				r.Get("/", Handler{env, GetPlayerHandler}.ServeHTTP)
@@ -226,7 +202,6 @@ func Server() {
 				r.Put("/start", Handler{env, StartTournamentHandler}.ServeHTTP)
 
 				r.Route("/results", func(r chi.Router) {
-					//					r.Get("/", Handler{env, GetTournamentResultsHandler}.ServeHTTP)
 					r.Post("/", Handler{env, PostTournamentResultHandler}.ServeHTTP)
 				})
 
@@ -237,14 +212,11 @@ func Server() {
 				r.Post("/participants", Handler{env, AddParticipantsHandler}.ServeHTTP)
 				r.Get("/participants", Handler{env, GetParticipantsHandler}.ServeHTTP)
 				r.Delete("/participants", Handler{env, RemoveParticipantsHandler}.ServeHTTP)
-				//				r.Get("/players", Handler{env, GetPlayerListHandler}.ServeHTTP)
-				//				r.Delete("/players", Handler{env, DeletePlayersHandler}.ServeHTTP)
 				r.Route("/participants/{participantNumber:[0-9]+}", func(r chi.Router) {
 					r.Delete("/", Handler{env, RemoveParticipantHandler}.ServeHTTP)
 					r.Post("/paid", Handler{env, ParticipantPaidHandler}.ServeHTTP)
 					r.Get("/", Handler{env, GetParticipantHandler}.ServeHTTP)
 					r.Put("/", Handler{env, UpdateParticipantNameHandler}.ServeHTTP)
-					//					r.Put("/", Handler{env, UpdatePlayerHandler}.ServeHTTP)
 				})
 			})
 
@@ -253,15 +225,7 @@ func Server() {
 		})
 	})
 
-	/*
-		r.Route("/api", func(r chi.Router) {
-			r.Route("/tournaments", func(r chi.Router)
-				r.Post("/", CreateTournamentHandler)
-				r.Get("/", ListTournamentHandler)
-				r.Route("/{tournamentID}", func(r chi.Router) {
-	*/
-	//	fmt.Println("routes: %v\n", docgen.JSONRoutesDoc(r))
-	fmt.Printf("launching server on 3000\n")
+	Logger.Infof("launching server on 3000\n")
 
 	if err := http.ListenAndServe(":3000", r); err != nil {
 		fmt.Printf("ListenAndServe error = %v\n", err)
@@ -271,44 +235,6 @@ func Server() {
 }
 
 /*
-func TournamentRenderHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-	fmt.Printf("rendering tournament template (main.html)\n")
-	username := r.Context().Value("username").(string)
-	/*data := struct {
-		UserName     string
-		TournamentID string
-	}{
-		username,
-		"",
-	}
-
-	//	if err := mainTemplate.Execute(w, data); err != nil {
-	//		return StatusError{500, err}
-	//	}
-
-	return nil
-}
-*/
-
-/*
-func TournamentsRenderHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-	enableCors(&w)
-	username := r.Context().Value("username").(string)
-	data := struct {
-		UserName     string
-		TournamentID string
-	}{
-		username,
-		"",
-	}
-
-	//	if err := tournamentsTemplate.Execute(w, data); err != nil {
-	//		return StatusError{500, err}
-	//	}
-	return nil
-}
-*/
-
 func HomeRenderHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
 	/*
@@ -318,49 +244,51 @@ func HomeRenderHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 				return StatusError{500, err}
 			}
 		}
-	*/
+*/
 
-	/*
-		session, err := auth.AuthStore.Get(r, "brackets-auth-session")
-		if err != nil {
-			return StatusError{500, err}
-		}
+/*
+	session, err := auth.AuthStore.Get(r, "brackets-auth-session")
+	if err != nil {
+		return StatusError{500, err}
+	}
 
-		err = ValidateAuthSession(DBSession, session)
-		if err != nil {
-			fmt.Printf("session not validated!!!!!\n")
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-		}
-		fmt.Printf("Validated Auth Session\n")
+	err = ValidateAuthSession(DBSession, session)
+	if err != nil {
+		fmt.Printf("session not validated!!!!!\n")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
+	fmt.Printf("Validated Auth Session\n")
 
-		var name string
-		var ok bool
-		var val interface{}
-		if val, ok = session.Values["given_name"]; !ok {
-			return StatusError{http.StatusSeeOther, err}
-		}
+	var name string
+	var ok bool
+	var val interface{}
+	if val, ok = session.Values["given_name"]; !ok {
+		return StatusError{http.StatusSeeOther, err}
+	}
 
-	*/
+*/
 
-	/*
-		username := r.Context().Value("username").(string)
-		data := struct {
-			UserName     string
-			TournamentID string
-		}{
-			username,
-			"",
-		}
+/*
+	username := r.Context().Value("username").(string)
+	data := struct {
+		UserName     string
+		TournamentID string
+	}{
+		username,
+		"",
+	}
 
-	*/
-	//url := "/static/home.html"
-	//http.Redirect(w, r, url, http.StatusFound)
+*/
+//url := "/static/home.html"
+//http.Redirect(w, r, url, http.StatusFound)
 
-	//	if err := homeTemplate.Execute(w, data); err != nil {
-	//		return StatusError{500, err}
-	//	}
+//	if err := homeTemplate.Execute(w, data); err != nil {
+//		return StatusError{500, err}
+//	}
+/*
 	return nil
 }
+*/
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {
 	if strings.ContainsAny(path, "{}*") {
@@ -381,41 +309,6 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 
 }
 
-/*
-func UpdatePlayerHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-
-	tournament := r.Context().Value("tournament").(*Tournament)
-	userId := r.Context().Value("uid").(int)
-
-	playerIdStr := chi.URLParam(r, "playerID")
-	playerId, err := strconv.Atoi(playerIdStr)
-	if err != nil {
-		return StatusError{500, err}
-	}
-
-	updatedPlayer, err := ioutil.ReadAll(r.Body)
-
-	var p *Player
-	if err := json.Unmarshal(updatedPlayer, &p); err != nil {
-		fmt.Printf("Unmarshal error: %v\n", err)
-		return StatusError{500, err}
-	}
-	/*
-
-	tournament.Players[playerId].Name = p.Name
-	if err = tournament.Store(DBSession, int64(userId)); err != nil {
-		return StatusError{500, err}
-	}
-
-
-*/
-/*
-	render.JSON(w, r, tournament)
-    return nil
-}
-
-*/
-
 func PrivacyHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
 	return nil
@@ -426,22 +319,20 @@ func GetPreferencesHandler(env *Env, w http.ResponseWriter, r *http.Request) err
 
 	tx := getTransaction(r.Context())
 	fmt.Printf("GetPreferencesHandler\n")
-	//userId := r.Context().Value(userIdContextKey).(int)
 	subject := r.Context().Value(subjectContextKey).(string)
 
 	branch, _ := param.QueryString(r, "branch") // returns first value
 
-	//	subset := QueryString(r, "branch")
 	preferences, err := LoadPreferences(tx, subject)
 
 	if preferences == nil || err != nil {
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("branch = %s\n", branch)
-	fmt.Printf("preferences = %v\n", preferences)
+	//fmt.Printf("branch = %s\n", branch)
+	//fmt.Printf("preferences = %v\n", preferences)
 	result := preferences.GetPreferences(branch)
-	fmt.Printf("prefs = %v\n", result)
+	//fmt.Printf("prefs = %v\n", result)
 	render.JSON(w, r, result)
 	return nil
 }
@@ -484,7 +375,7 @@ func UpdateParticipantNameHandler(env *Env, w http.ResponseWriter, r *http.Reque
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("participantNumber = %v, subject = %v\n", participantNumber, subject)
+	//fmt.Printf("participantNumber = %v, subject = %v\n", participantNumber, subject)
 
 	tx := getTransaction(r.Context())
 	newName, err := ioutil.ReadAll(r.Body)
@@ -504,7 +395,7 @@ func UpdateParticipantNameHandler(env *Env, w http.ResponseWriter, r *http.Reque
 
 func GetParticipantHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 	tournament := r.Context().Value("tournament").(*Tournament)
-	subject := r.Context().Value(subjectContextKey).(string)
+	//subject := r.Context().Value(subjectContextKey).(string)
 
 	participantNumberStr := chi.URLParam(r, "participantNumber")
 	participantNumber, err := strconv.Atoi(participantNumberStr)
@@ -512,7 +403,7 @@ func GetParticipantHandler(env *Env, w http.ResponseWriter, r *http.Request) err
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("participantNumber = %v, subject = %v\n", participantNumber, subject)
+	//fmt.Printf("participantNumber = %v, subject = %v\n", participantNumber, subject)
 
 	participant := tournament.Participants[ParticipantNumber(participantNumber)]
 
@@ -544,7 +435,7 @@ func ParticipantPaidHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 }
 
 func DeleteTournamentsHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-	fmt.Printf("DeleteTournamentsHandler\n")
+	//fmt.Printf("DeleteTournamentsHandler\n")
 
 	tx := getTransaction(r.Context())
 	subject := r.Context().Value(subjectContextKey).(string)
@@ -560,11 +451,11 @@ func DeleteTournamentsHandler(env *Env, w http.ResponseWriter, r *http.Request) 
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("objects = %v\n", objects)
+	//fmt.Printf("objects = %v\n", objects)
 	justIds := make([]int64, 0)
 	for _, p := range objects {
-		fmt.Printf("id = %v\n", p)
-		fmt.Printf("id = %d\n", p.Id)
+		//fmt.Printf("id = %v\n", p)
+		//fmt.Printf("id = %d\n", p.Id)
 		//		var v int64
 		//		v, err = strconv.ParseInt(p.Id, 10, 64)
 		justIds = append(justIds, p.Id)
@@ -593,18 +484,6 @@ func GetParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-/*
-func CreatePlayerHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-
-	userId := r.Context().Value("uid").(int)
-	accountId := r.Context().Value("accountId").(int)
-
-	fmt.Printf("PostPlayerHandler\n")
-	tournament := r.Context().Value("tournament").(*Tournament)
-
-}
-*/
-
 func AddParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
 	subject := r.Context().Value(subjectContextKey).(string)
@@ -613,14 +492,11 @@ func AddParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 
 	participants, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("e1\n")
 		return StatusError{500, err}
 	}
 	names := make([]Username, 0)
 
-	fmt.Printf("TouranmentState = %v\n", tournament.State)
 	if err := json.Unmarshal(participants, &names); err != nil {
-		fmt.Printf("e2\n")
 		return StatusError{500, err}
 
 	}
@@ -637,12 +513,12 @@ func AddParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 		}
 
 		if tournament.FindParticipantByName(p.Name) != nil {
-			fmt.Printf("Warning: %s is already registered, skipping", p.Name)
+			Logger.Errorf("Warning: %s is already registered, skipping", p.Name)
 			return StatusError{500, err}
 		}
 		err = tournament.AddParticipant(tx, player.Id, p.Name)
 		if err != nil {
-			fmt.Printf("Unable to add %s to tournament\n", p.Name)
+			Logger.Errorf("Unable to add %s to tournament\n", p.Name)
 			return StatusError{500, err}
 		}
 	}
@@ -659,7 +535,6 @@ func AddParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 }
 
 func RemoveParticipantHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-	fmt.Printf("RemoveParticipantsHandler\n")
 
 	subject := r.Context().Value(subjectContextKey).(string)
 	tournament := r.Context().Value("tournament").(*Tournament)
@@ -687,7 +562,6 @@ func RemoveParticipantHandler(env *Env, w http.ResponseWriter, r *http.Request) 
 
 }
 func RemoveParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
-	fmt.Printf("RemoveParticipantsHandler\n")
 
 	subject := r.Context().Value(subjectContextKey).(string)
 
@@ -723,16 +597,13 @@ func RemoveParticipantsHandler(env *Env, w http.ResponseWriter, r *http.Request)
 
 func PostPlayerImageHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
-	fmt.Println("File Upload Endpoint Hit")
-
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 10 MB files.
 	r.ParseMultipartForm(10 << 20)
 
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
-		fmt.Println("Error Retrieving the File")
-		fmt.Println(err)
+		Logger.Error(err)
 		return StatusError{500, err}
 	}
 	defer file.Close()
@@ -823,9 +694,7 @@ func GetUserHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	tx := getTransaction(r.Context())
-	fmt.Printf("targetUid = %v\n", targetUid)
 	user, err := LoadUserById(tx, targetUid)
-	fmt.Printf("user = %v\n", user)
 
 	if err != nil {
 		return StatusError{500, err}
@@ -853,11 +722,8 @@ func DeletePlayerHandler(env *Env, w http.ResponseWriter, r *http.Request) error
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("objects = %v\n", objects)
 	justIds := make([]int64, 0)
 	for _, p := range objects {
-		fmt.Printf("id = %v\n", p)
-		fmt.Printf("id = %d\n", p.Id)
 		//		var v int64
 		//		v, err = strconv.ParseInt(p.Id, 10, 64)
 		justIds = append(justIds, p.Id)
@@ -916,8 +782,6 @@ func CreatePlayerHandler(env *Env, w http.ResponseWriter, r *http.Request) error
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("player = %v\n", player)
-
 	pl, err := CreatePlayer(tx, accountId, player.Name, player.Email, player.Phone)
 
 	//w.WriteHeader(http.StatusOK)
@@ -932,27 +796,22 @@ func DeleteGameResultHandler(env *Env, w http.ResponseWriter, r *http.Request) e
 	tx := getTransaction(r.Context())
 	subject := r.Context().Value(subjectContextKey).(string)
 
-	fmt.Printf("DeleteGameResult\n")
 	tournament := r.Context().Value("tournament").(*Tournament)
 
 	gameIdStr := chi.URLParam(r, "gameID")
 	gameId, err := strconv.Atoi(gameIdStr)
-	fmt.Printf("game id = %v\n", gameId)
 	if err != nil {
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("DeleteGameResult 1\n")
 	if err = tournament.RemoveResult(tx, subject, NodeId(gameId)); err != nil {
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("DeleteGameResult 2\n")
 	if err = tournament.Store(tx, subject); err != nil {
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("DeleteGameResult 3\n")
 	var t *Tournament
 	t, err = LoadTournament(tx, int64(tournament.Id))
 	if err != nil {
@@ -972,10 +831,8 @@ func PostGameResultHandler(env *Env, w http.ResponseWriter, r *http.Request) err
 
 	tx := getTransaction(r.Context())
 	subject := r.Context().Value(subjectContextKey).(string)
-	fmt.Printf("PostGameResult\n")
 	tournament := r.Context().Value("tournament").(*Tournament)
 
-	fmt.Printf("tourn = %v\n", tournament)
 	gameIdStr := chi.URLParam(r, "gameID")
 	slotStr := chi.URLParam(r, "slot")
 
@@ -993,21 +850,18 @@ func PostGameResultHandler(env *Env, w http.ResponseWriter, r *http.Request) err
 
 	//	result := GameResult{gameId, slot, time.Now().Unix()}
 
-	fmt.Printf("GameId = %d, slot = %d\n", gameId, slot)
 	node := tournament.Bracket.GetNode(NodeId(gameId))
 
 	if err := tournament.AddResult(tx, node, slot); err != nil {
-		fmt.Printf("AddResult returned err: %v\n", err)
+		Logger.Errorf("AddResult returned err: %v\n", err)
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("%s\n", tournament.Bracket.Root.String())
 	if err := tournament.Store(tx, subject); err != nil {
-		fmt.Printf("Store returned err: %v\n", err)
+		Logger.Errorf("Store returned err: %v\n", err)
 		return StatusError{500, err}
 	}
 
-	fmt.Printf("%s\n", tournament.Bracket.Root.String())
 	render.JSON(w, r, tournament)
 	return nil
 }
@@ -1021,21 +875,20 @@ func UpdateTournamentHandler(env *Env, w http.ResponseWriter, r *http.Request) e
 	_ = tournament
 	updatedTournament, err := ioutil.ReadAll(r.Body)
 
-	fmt.Printf("%v\n", string(updatedTournament))
 	if err != nil {
-		fmt.Printf("readTournamentError: %v\n", err)
+		Logger.Errorf("readTournamentError: %v\n", err)
 		return StatusError{500, err}
 	}
 
 	var t *Tournament
 	if err := json.Unmarshal(updatedTournament, &t); err != nil {
-		fmt.Printf("Unmarshal error: %v\n", err)
+		Logger.Errorf("Unmarshal error: %v\n", err)
 		return StatusError{500, err}
 	}
 	//tx := NewDBSession()
 
 	if err := t.Store(tx, subject); err != nil {
-		fmt.Printf("Store error: %v\n", err)
+		Logger.Errorf("Store error: %v\n", err)
 		return StatusError{500, err}
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -1045,9 +898,7 @@ func UpdateTournamentHandler(env *Env, w http.ResponseWriter, r *http.Request) e
 
 func GetPlayersHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
-	//userId := r.Context().Value("uid").(int)
 	tx := getTransaction(r.Context())
-	//accountId := r.Context().Value("accountId").(int)
 	var accountId int64 = 1
 
 	var players []Player
@@ -1065,16 +916,9 @@ func GetPlayersHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
 func GetTournamentsHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
-	//	token := getJWTToken(r.Context())
-	//	fmt.Printf("token = %v\n", token)
-
 	subject := r.Context().Value(subjectContextKey).(string)
 
-	//userId := 0
-
 	tx := getTransaction(r.Context())
-	///userId := r.Context().Value("uid").(int)
-	//fmt.Printf("userId = %d\n", userId)
 
 	onlyActive := false
 	activeStr := QueryString(r, "active")
@@ -1116,8 +960,6 @@ func CreateTournamentHandler(env *Env, w http.ResponseWriter, r *http.Request) e
 		//		return err
 	}
 
-	fmt.Printf("new Tourn ID = %d\n", t.Id)
-
 	render.JSON(w, r, t)
 
 	return nil
@@ -1144,7 +986,6 @@ func StartTournamentHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 func RandomizePlayersHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 	tx := getTransaction(r.Context())
 	subject := r.Context().Value(subjectContextKey).(string)
-	fmt.Printf("RandomizePlayers\n")
 	tournament := r.Context().Value("tournament").(*Tournament)
 
 	if tournament.State == UNDERWAY {
@@ -1168,7 +1009,6 @@ func GenerateBracketHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 
 	tx := getTransaction(r.Context())
 	subject := r.Context().Value(subjectContextKey).(string)
-	fmt.Printf("GenerateBracketHandler\n")
 	tournament := r.Context().Value("tournament").(*Tournament)
 
 	var err error
@@ -1189,18 +1029,17 @@ func GenerateBracketHandler(env *Env, w http.ResponseWriter, r *http.Request) er
 
 func EnsureUser(r *http.Request) int64 {
 	subject := r.Context().Value(subjectContextKey).(string)
-	fmt.Printf("Ensure User: %s\n", subject)
 	tx := getTransaction(r.Context())
 
 	user, err := LoadUserBySubject(tx, subject)
 	if err != nil {
-		fmt.Printf("LoginUserHandler - Error: %v\n", err)
+		Logger.Errorf("LoginUserHandler - Error: %v\n", err)
 	}
 	if user == nil {
-		fmt.Printf("Adding User for %s\n", subject)
+		Logger.Infof("Adding User for %s\n", subject)
 		user, err = AddUser(tx, 1, subject, "", "")
 		if err != nil {
-			fmt.Printf("LoginUser AddUser Error: %v\n", err)
+			Logger.Errorf("LoginUser AddUser Error: %v\n", err)
 		}
 	}
 
@@ -1212,19 +1051,18 @@ func LoginUserHandler(env *Env, w http.ResponseWriter, r *http.Request) error {
 
 	subject := r.Context().Value(subjectContextKey).(string)
 
-	fmt.Printf("LoginUserHandler: %s\n", subject)
 	tx := getTransaction(r.Context())
 
 	user, err := LoadUserBySubject(tx, subject)
 	if err != nil {
-		fmt.Printf("LoginUserHandler - Error: %v\n", err)
+		Logger.Errorf("LoginUserHandler - Error: %v\n", err)
 	}
 
 	if user == nil {
-		fmt.Printf("Adding User for %s\n", subject)
+		Logger.Infof("Adding User for %s\n", subject)
 		user, err = AddUser(tx, 1, subject, "", "")
 		if err != nil {
-			fmt.Printf("LoginUser AddUser Error: %v\n", err)
+			Logger.Errorf("LoginUser AddUser Error: %v\n", err)
 		}
 	}
 
@@ -1416,7 +1254,7 @@ func UserInterceptor(next http.Handler) http.Handler {
 func DBConnection(next http.Handler) http.Handler {
 	h := func(w http.ResponseWriter, r *http.Request) {
 		//		ctx := r.Context()
-		fmt.Printf("Calling DB.NewSession\n")
+		//fmt.Printf("Calling DB.NewSession\n")
 		session := DB.NewSession(nil)
 		r = r.WithContext(context.WithValue(r.Context(), sessionContextKey, session))
 
@@ -1429,27 +1267,23 @@ func DBConnection(next http.Handler) http.Handler {
 func AuthTokenVerifier(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		h := func(w http.ResponseWriter, r *http.Request) {
-			fmt.Printf("AuthToknVerifier\n")
 
 			authHeader := r.Header.Get("Authorization")
-			fmt.Printf("authHeader = %v\n", authHeader)
 			if authHeader == "" || len(authHeader) <= 0 {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 
 			}
-			fmt.Printf("f2\n")
 			pair := strings.Split(authHeader, " ")
 			token := pair[1]
-			fmt.Printf("Token = %s\n", token)
+			//fmt.Printf("Token = %s\n", token)
 
 			decodedToken, err := jwt.Parse([]byte(token),
 				jwt.WithDecrypt(jwa.RSA_OAEP_256, "aCzy27d42eWhrVrp36mpXUcf1LiWHwvQnUXz5E7NXZ4"))
 
 			if err != nil {
-				fmt.Printf("errorr decoding - %v\n", err)
+				Logger.Errorf("errorr decoding - %v\n", err)
 			}
-			fmt.Printf("subject = %s\n", decodedToken.Subject())
 
 			r = r.WithContext(context.WithValue(r.Context(), subjectContextKey, decodedToken.Subject()))
 
@@ -1458,23 +1292,6 @@ func AuthTokenVerifier(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 		return http.HandlerFunc(h)
 	}
 }
-
-/*
-func AuthTokenVerifier(next http.Handler) http.Handler {
-	h := func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("AuthToknVerifier")
-		authHeader := r.Header.Get("Authorization")
-		ctx := r.Context()
-		pair := strings.Split(authHeader, " ")
-		token := pair[1]
-		fmt.Printf("Token = %s\n", token)
-		r = r.WithContext(context.WithValue(r.Context(), jwtauth.TokenCtxKey, token))
-
-		next.ServeHTTP(w, r)
-	}
-
-}
-*/
 
 /*
 func VerifyUser(next http.Handler) http.Handler {
@@ -1542,11 +1359,11 @@ func transaction(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		sess := getDBSession(r.Context())
-		fmt.Printf("sess = %v\n", sess)
+		//fmt.Printf("sess = %v\n", sess)
 		tx, err := sess.BeginTx(r.Context(), nil)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Printf("Open transaction failed: %s \n", err.Error())
+			Logger.Errorf("Open transaction failed: %s \n", err.Error())
 			return
 		}
 		r = r.WithContext(context.WithValue(r.Context(), txContextKey, tx))
@@ -1560,7 +1377,7 @@ func transaction(next http.Handler) http.Handler {
 					err = fmt.Errorf("%v", r)
 				}
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Printf("Transaction is being rolled back: %s \n", err.Error())
+				Logger.Warningf("Transaction is being rolled back: %s \n", err.Error())
 				tx.Rollback()
 				return
 			}
@@ -1570,16 +1387,16 @@ func transaction(next http.Handler) http.Handler {
 		if err != nil {
 			err = tx.Rollback()
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Printf("Transaction is being rolled back: %s \n", err.Error())
+			Logger.Warningf("Transaction is being rolled back: %s \n", err.Error())
 			return
 		}
 
 		err = tx.Commit()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Printf("Transaction commit failed: %s \n", err.Error())
+			Logger.Warningf("Transaction commit failed: %s \n", err.Error())
 		} else {
-			fmt.Println("Transaction has been committed")
+			Logger.Infof("Transaction has been committed")
 		}
 	})
 }
@@ -1605,16 +1422,14 @@ func getTransaction(ctx context.Context) *dbr.Tx {
 
 func getJWTToken(ctx context.Context) *jwt.Token {
 	tokenValue := ctx.Value(jwtauth.TokenCtxKey)
-	fmt.Printf("tokenValue = %v\n", tokenValue)
 	if tokenValue != nil {
 		token := tokenValue.(jwt.Token)
 		return &token
 	}
 	errorValue := ctx.Value(jwtauth.ErrorCtxKey)
-	fmt.Printf("errorValue = %v\n", errorValue)
 	if errorValue != nil {
 		err := errorValue.(error)
-		fmt.Printf("error = %v\n", err)
+		Logger.Errorf("error = %v\n", err)
 	}
 
 	return nil
@@ -1717,7 +1532,6 @@ func GetKeycloakRSAKey() (string, error) {
 	}
 
 	for k, _ := range jwks.Keys {
-		fmt.Printf("jwks.Keys[%s] = %v\n", k, jwks.Keys[k])
 		if jwks.Keys[k].Use == "enc" {
 			cert = jwks.Keys[k].X5c[0]
 			break

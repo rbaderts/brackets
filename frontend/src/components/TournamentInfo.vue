@@ -80,12 +80,35 @@ export default defineComponent({
   <div class="container">
     <div class="q-pa-xs">
       <div class="q-gutter-y-md column" style="max-width: 300px">
-        <q-input :dense="true" v-model="tournament.name" label="Name"></q-input>
+      <!--
         <q-input
-          :dense="true"
-          v-model="tournament.status"
-          label="Status"
-        ></q-input>
+         :dense="true" 
+         v-model="tournament.name"
+         label="Name"
+         :value="tournament.name">
+         -->
+         <!--
+         </q-input>
+         <q-field label="Label" stack-label :dense="dense">
+        <template v-slot:control>
+          <div class="self-center full-width no-outline" tabindex="0">{{text}}</div>
+        </template>
+      </q-field>
+      -->
+        <q-field :model-value="tournament.name" :dense="true" label="Name" stack-label>
+          <template v-slot:control>
+            <div class="self-center full-width no-outline" tabindex="0">
+              {{ tournament.name }}
+            </div>
+          </template>
+        </q-field>
+        <q-field :dense="true" label="Status" stack-label>
+          <template v-slot:control>
+            <div class="self-center full-width no-outline" tabindex="0">
+              {{ tournament.status }}
+            </div>
+          </template>
+        </q-field>
         <q-field :dense="true" label="Tournament Type" stack-label>
           <template v-slot:control>
             <div class="self-center full-width no-outline" tabindex="0">

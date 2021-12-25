@@ -259,6 +259,7 @@ export default defineComponent ({
   </div>
 
   <div id="q-app" style="min-height: 100vh" v-else>
+  <q-page>
     <q-banner dense id="info-banner" style="display:none" class="bg-positive text-white">
     </q-banner>
     <q-banner dense id="error-banner" style="display:none" class="bg-negative text-white">
@@ -268,14 +269,17 @@ export default defineComponent ({
                 @click="toggleErrorBanner()"></q-btn>
       </template>
     </q-banner>
-    <input type="text" id="participant_names" name="names" />
-    <q-btn
-      style="display: inline; margin-left: 6px"
-      v-on:click="AddPlayer"
-      push
-      color="primary"
-      label="Add"
-    ></q-btn>
+    <div class="row">
+      <div class="col-3">
+        <input type="text" id="participant_names" name="names" />
+      </div>
+      <div class="col-2">
+        <q-btn v-on:click="AddPlayer"
+           push
+           color="primary"
+           label="Add"></q-btn>
+      </div>
+    </div>
     <div class="q-pa-md">
       <q-table
         :dense="true"
@@ -326,7 +330,8 @@ export default defineComponent ({
             </q-tr>
             </template>
       </q-table>
-    </div>
+      </div>
+    </q-page>
   </div>
 </template>
 

@@ -1,22 +1,23 @@
 package brackets
 
 import (
-	"fmt"
 	"testing"
 )
 
 func Test1(t *testing.T) {
 
-	participants := make([]ParticipantNumber, 14)
-	for i := 0; i < 14; i++ {
-		participants[i] = ParticipantNumber(i + 1)
-	}
+	/*
+		participants := make([]ParticipantNumber, 14)
+		for i := 0; i < 14; i++ {
+			participants[i] = ParticipantNumber(i + 1)
+		}
 
-	bracket := NewBracket(participants)
-	root := bracket.BuildDoubleElimBracket()
-	root.debugNode()
+		bracket := NewBracket(participants)
+		root := bracket.BuildDoubleElimBracket()
+		root.debugNode()
 
-	fmt.Printf("%s\n", root.PrintTree())
+		fmt.Printf("%s\n", root.PrintTree())
+	*/
 
 }
 

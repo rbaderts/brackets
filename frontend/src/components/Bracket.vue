@@ -336,13 +336,12 @@ class Bracket {
 
             calcSize(bracket, rootNode) {
 
-                //console.log("depth = " +bracket.depth)
                 if (rootNode) {
                     //let width = ((bracket.depth+1) * constants.NODE_WIDTH) +
                     //    ((bracket.depth+1) * constants.NODE_SPACE*2);
-                    console.log("losersDepth = " + bracket.depth)
-                    let width = ((bracket.depth+2) * constants.NODE_WIDTH) + 
-                                ((bracket.depth+1) * constants.NODE_SPACE)
+                    console.log("losersDepth = " + bracket.losersDepth);
+                    let losersDepth = bracket.losersDepth;
+                    let width = (losersDepth+1) * (constants.NODE_WIDTH + constants.NODE_SPACE)
                     let height = bracket.root.span.upper + bracket.root.span.lower + 100;
 
                     return {width: width, height: height}
@@ -543,8 +542,9 @@ class Bracket {
         }
     }
 
-    frameBox (ctx, x, y, width, alpha, color1, color2, reversed) {
+    frameBox (ctx, x, y, alpha, color1, color2, reversed) {
 
+              let width = constants.NODE_WIDTH;
               // draw the box
               ctx.textAlign = "Left";
               ctx.lineWidth = 1;
@@ -570,8 +570,9 @@ class Bracket {
 
     }
 
-    fillBox (ctx, x, y, width, alpha, color, reversed) {
+    fillBox (ctx, x, y, alpha, color, reversed) {
 
+       let width = constants.NODE_WIDTH;
               ctx.fillStyle = color.alpha(alpha);
               if (reversed) {
                   ctx.fillRect(x + 1, y + 1, 22, constants.NODE_HEIGHT - 2);
@@ -591,8 +592,9 @@ class Bracket {
 
     }
 
-    highlight (ctx, x, y, width, reversed) {
+    highlight (ctx, x, y, reversed) {
 
+        let width = constants.NODE_WIDTH;
         ctx.strokeStyle = chroma(constants.COLOR_22);
         ctx.lineWidth = 3;
         if (reversed) {
@@ -612,8 +614,9 @@ class Bracket {
         return chroma(constants.COLOR_1);
     }
 
-          drawPlayerIndicator  (ctx, x, y, width, slot, reversed, winningSlot) {
+          drawPlayerIndicator  (ctx, x, y, slot, reversed, winningSlot) {
 
+              let width = constants.NODE_WIDTH;
               ctx.font = "14px Arial";
               ctx.fontWeight = "bold";
               ctx.textAlign = "center";
@@ -679,8 +682,9 @@ class Bracket {
               }
           }
 
-         drawID (ctx, x, y, width, reversed) {
+         drawID (ctx, x, y, reversed) {
 
+              let width = constants.NODE_WIDTH;
               ctx.textAlign = "center";
               ctx.font = "15px Arial";
               ctx.fontWeight = "bold";
@@ -694,8 +698,8 @@ class Bracket {
 
           renderGame (canvas) {
 
-              let height = canvas.height;
-              let width = canvas.width;
+              //let height = canvas.height;
+              //let width = canvas.width;
               let ctx = canvas.getContext('2d');
 
               ctx.strokeStyle = chroma("black");
@@ -710,15 +714,15 @@ class Bracket {
                   brighten = 1;
               }
 
-              this.frameGame(ctx, height, width, alpha)
+              this.frameGame(ctx,  alpha)
 
               var winningSlot = 0;
               if (this.game.state.result != null) {
                   winningSlot = this.game.state.result.winningSlot;
               }
 
-              this.renderPlayerIndicator(ctx, height, width, 1, winningSlot);
-              this.renderPlayerIndicator(ctx, height, width, 2, winningSlot);
+              this.renderPlayerIndicator(ctx, 1, winningSlot);
+              this.renderPlayerIndicator(ctx, 2, winningSlot);
 
               ctx.strokeStyle = chroma("black").alpha(alpha)
 
@@ -726,10 +730,11 @@ class Bracket {
                   ctx.strokeStyle = chroma("black").brighten(brighten)
               }
 
-              this.renderGameId(ctx, width, false);
+              this.renderGameId(ctx,false);
           }
 
-          renderGameId (ctx, width, reversed) {
+          renderGameId (ctx, reversed) {
+              let width = constants.NODE_WIDTH;
 
               ctx.textAlign = "center";
               ctx.font = "16px Arial";
@@ -740,7 +745,9 @@ class Bracket {
               }
           }
 
-          renderPlayerIndicator (ctx, height, width, slot, winningSlot) {
+          renderPlayerIndicator (ctx, slot, winningSlot) {
+              let height = constants.NODE_HEIGHT
+              let width = constants.NODE_WIDTH
               ctx.font = "14px Arial";
               ctx.textAlign = "center";
 
@@ -779,7 +786,10 @@ class Bracket {
               }
           }
 
-          frameGame (ctx, height, width, alpha)  {
+          frameGame (ctx, alpha)  {
+
+              let height = constants.NODE_HEIGHT;
+              let width = constants.NODE_WIDTH;
 
               // draw the box
               ctx.textAlign = "Left";
@@ -793,16 +803,11 @@ class Bracket {
               ctx.strokeRect(0, 0, width - 24, height);
 
 
-              //var clr1 = chroma(COLORS.UpperBackground);
-//              var clr1 = chroma(COLORS.UpperBackground);
               var clr1 = chroma(this.TheBracket.Preferences.GetSlot1BGColor());
-              //clr1.alpha(alpha);
               ctx.fillStyle = clr1;
               ctx.fillRect(1, 1, width - 26,height / 2 - 2);
 
-//              var clr2 = chroma(COLORS.LowerBackground);
               var clr2 = chroma(this.TheBracket.Preferences.GetSlot2BGColor());
-//              clr2.alpha(alpha);
               ctx.fillStyle = clr2;
               ctx.fillRect(1, 1 + (height / 2), width - 26, height / 2 - 2);
 
@@ -824,13 +829,12 @@ class Bracket {
           }
 
 
-
               /*
 				 columns:   A list of column starting points
 			   */
           renderRightToLeft (ctx, x, y, level, degree, selection, columns) {
 
-              var width = this.width;
+              var width = constants.NODE_WIDTH;
 
               let lev = level;
               var space = constants.NODE_SPACE;
@@ -863,7 +867,7 @@ class Bracket {
               this.x = x;
               this.y = y;
 
-              this.frameBox(ctx, x, y, width, alpha, this.upperBGColor, this.lowerBGColor, false);
+              this.frameBox(ctx, x, y, alpha, this.upperBGColor, this.lowerBGColor, false);
 
 
               var clr
@@ -873,10 +877,10 @@ class Bracket {
                   clr = this.gameIdBGColor
               }
 
-              this.fillBox(ctx, x, y, width, alpha, clr, false);
+              this.fillBox(ctx, x, y, alpha, clr, false);
 
               if (selection != null && (selection.node.Id == this.Id)) {
-                  this.highlight(ctx, x, y, width, false)
+                  this.highlight(ctx, x, y, false)
               }
 
               var winningSlot = 0;
@@ -884,17 +888,13 @@ class Bracket {
                   winningSlot = this.game.state.result.winningSlot;
               }
 
-              this.drawPlayerIndicator(ctx, x, y,width, 1, false, winningSlot);
-              this.drawPlayerIndicator(ctx, x, y,width, 2, false, winningSlot);
+              this.drawPlayerIndicator(ctx, x, y, 1, false, winningSlot);
+              this.drawPlayerIndicator(ctx, x, y, 2, false, winningSlot);
 
-
-//              ctx.strokeStyle = chroma(constants.COLOR_17).alpha(1.0)
 
               if (this.game.state.result != null) {
                   ctx.strokeStyle = chroma(constants.COLOR_17);
-//                  ctx.strokeStyle = chroma(constants.COLOR_17).brighten(2)
               } else {
- //                 ctx.strokeStyle = chroma(constants.COLOR_17).brighten(1)
                  ctx.strokeStyle = chroma(constants.COLOR_17);
               }
 

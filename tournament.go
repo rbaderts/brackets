@@ -346,6 +346,9 @@ func (this *Tournament) RemoveResult(session dbr.SessionRunner, subject string, 
 
 	node.GameState.Result = nil
 	this.GamesPlayed = this.GamesPlayed - 1
+	if this.GamesPlayed == 0 {
+		this.State = REGISTRATION
+	}
 
 	//	fmt.Printf("Tournament: Remove Result:   games played now = %d\n", this.GamesPlayed)
 	//	if this.GamesPlayed == 0 {
@@ -379,7 +382,7 @@ func (this *Tournament) AddParticipant(session dbr.SessionRunner, playerId int64
 	//	if this.Bracket != nil && this.State == UNDERWAY {
 	if this.Bracket.Root != nil && this.State == UNDERWAY {
 		fmt.Printf("Trying to add to running tournamnt\n")
-		result := this.Bracket.AddParticipantIfAble(p.Number)
+		result := this.Bracket.AddParticipantIfAble(this.Participants, p.Number)
 		if result == false {
 			return errors.New("Unable to add new player, sorry")
 		}
@@ -434,7 +437,7 @@ func (this *Tournament) Store(session dbr.SessionRunner, subject string) error {
 	user, err := LoadUserBySubject(session, subject)
 	userId := user.Id
 
-	fmt.Printf("Tournament.Store: id = %d\n", this.Id)
+	//fmt.Printf("Tournament.Store: id = %d\n", this.Id)
 	var data []byte
 
 	if data, err = json.Marshal(this); err != nil {
@@ -454,7 +457,7 @@ func (this *Tournament) Store(session dbr.SessionRunner, subject string) error {
 			Load(&id)
 
 		if err != nil {
-			log.Fatalf("Insert Tournaments failed: %v", err)
+			Logger.Fatalf("Insert Tournaments failed: %v", err)
 			return err
 		}
 		this.Id = id
@@ -482,7 +485,7 @@ func (this *Tournament) Store(session dbr.SessionRunner, subject string) error {
 
 		_, err := UpdateStmt.Where("id = ?", this.Id).Exec()
 		if err != nil {
-			log.Fatalf("Update Tournament failed: %v", err)
+			Logger.Fatalf("Update Tournament failed: %v", err)
 			return err
 		}
 	}
@@ -498,14 +501,14 @@ func ListTournamentsBySubject(session dbr.SessionRunner, subject string, active 
 		Where("subject = ?", subject).OrderBy("id").Rows()
 
 	if err != nil {
-		log.Fatalf("Select Tournament failed: %v\n", err)
+		Logger.Fatalf("Select Tournament failed: %v\n", err)
 		return nil, err
 	}
 
 	var records = make([]*TournamentRecord, 0)
 
-	c, e := result.Columns()
-	fmt.Printf("result set = %v, err = %v\n", c, e)
+	//c, e := result.Columns()
+	//fmt.Printf("result set = %v, err = %v\n", c, e)
 	for {
 		if result.Next() == false {
 			if err := result.Close(); err != nil {
@@ -525,10 +528,10 @@ func ListTournamentsBySubject(session dbr.SessionRunner, subject string, active 
 		var finalGame int
 		var state string
 		var participantCount int
-		fmt.Printf("Scanning record\n")
+		//fmt.Printf("Scanning record\n")
 		if err := result.Scan(&id, &accountid, &userId, &subject, &name, &creationDate, &startTime, &endTime, &finalGame, &state, &participantCount); err != nil {
 			_ = result.Close()
-			log.Fatalf("Scan tournament data failed: %v\n", err)
+			Logger.Fatalf("Scan tournament data failed: %v\n", err)
 			return nil, err
 		}
 		rec := TournamentRecord{id, userId, subject, name,
@@ -538,20 +541,18 @@ func ListTournamentsBySubject(session dbr.SessionRunner, subject string, active 
 }
 func ListTournaments(session dbr.SessionRunner, subject string, active bool) ([]*TournamentRecord, error) {
 
-	fmt.Printf("selecting tournamentRecords for user: %s\n", subject)
-	fmt.Printf("db = %v\n", session)
 	result, err := session.Select("id, account_id, user_id, subject, tournament_name, creation_date, start_time, end_time, final_game, tournament_state, participant_count").From("tournaments").
 		Where("subject = ?", subject).OrderBy("id").Rows()
 
 	if err != nil {
-		log.Fatalf("Select Tournament failed: %v\n", err)
+		Logger.Fatalf("Select Tournament failed: %v\n", err)
 		return nil, err
 	}
 
 	var records = make([]*TournamentRecord, 0)
 
-	c, e := result.Columns()
-	fmt.Printf("result set = %v, err = %v\n", c, e)
+	//c, e := result.Columns()
+	//fmt.Printf("result set = %v, err = %v\n", c, e)
 	for {
 		if result.Next() == false {
 			if err := result.Close(); err != nil {
@@ -571,10 +572,10 @@ func ListTournaments(session dbr.SessionRunner, subject string, active bool) ([]
 		var finalGame int
 		var state string
 		var participantCount int
-		fmt.Printf("Scanning record\n")
+		//fmt.Printf("Scanning record\n")
 		if err := result.Scan(&id, &accountid, &userId, &sub, &name, &creationDate, &startTime, &endTime, &finalGame, &state, &participantCount); err != nil {
 			_ = result.Close()
-			log.Fatalf("Scan tournament data failed: %v\n", err)
+			Logger.Fatalf("Scan tournament data failed: %v\n", err)
 			return nil, err
 		}
 		rec := TournamentRecord{id, userId, sub, name,
@@ -585,10 +586,9 @@ func ListTournaments(session dbr.SessionRunner, subject string, active bool) ([]
 
 func LoadTournament(session dbr.SessionRunner, id int64) (*Tournament, error) {
 
-	fmt.Printf("selecting tournament with id: %d\n", id)
 	result, err := session.Select("tournament_data").From("tournaments").Where("id = ?", id).Rows()
 	if err != nil {
-		log.Fatalf("Select Tournament failed: %v\n", err)
+		Logger.Fatalf("Select Tournament failed: %v\n", err)
 		return nil, err
 	}
 	if result.Next() == false {
@@ -597,7 +597,7 @@ func LoadTournament(session dbr.SessionRunner, id int64) (*Tournament, error) {
 
 	var data []byte
 	if err := result.Scan(&data); err != nil {
-		log.Fatalf("Scan tournament data failed: %v\n", err)
+		Logger.Fatalf("Scan tournament data failed: %v\n", err)
 		return nil, nil
 	}
 
@@ -606,18 +606,16 @@ func LoadTournament(session dbr.SessionRunner, id int64) (*Tournament, error) {
 	///	fmt.Printf("data = %v\n", data)
 	var t *Tournament
 	if err = json.Unmarshal(data, &t); err != nil {
-		log.Fatalf("Unmarshal tournament data failed: %v", err)
+		Logger.Fatalf("Unmarshal tournament data failed: %v", err)
 		return nil, nil
 	}
 
-	fmt.Printf("t = %v\n", t)
+	//fmt.Printf("t = %v\n", t)
 	t.Id = id
 
 	t.Bracket.internalize()
 	t.Bracket.tournament = t
-	fmt.Printf("RootNodeId = %v\n", t.Bracket.RootNodeId)
 	t.Bracket.Root = t.Bracket.Nodes[t.Bracket.RootNodeId]
-	fmt.Printf("Root = %v\n", t.Bracket.Root)
 
 	return t, nil
 
@@ -636,7 +634,6 @@ func (this *Tournament) getUnassignedParticipants() (error, []*Participant) {
 
 func (this *Tournament) DrawParticipants(session dbr.SessionRunner, subject string) error {
 
-	fmt.Printf("Draw:   #0 Players: %d\n", len(this.Participants))
 	vals := make([]int, len(this.Participants))
 	for i := 0; i < len(this.Participants); i++ {
 		vals[i] = i + 1
@@ -669,7 +666,7 @@ func (this *Tournament) DrawParticipants(session dbr.SessionRunner, subject stri
 
 func (this *Tournament) BuildBrackets(session dbr.SessionRunner, subject string) (*Tournament, error) {
 
-	fmt.Printf("Build Brackets\n")
+	Logger.Infof("Enter\n")
 
 	//	if this.Bracket.Root != nil {
 	//		return this, nil
@@ -687,9 +684,9 @@ func (this *Tournament) BuildBrackets(session dbr.SessionRunner, subject string)
 		return nil, errors.New("Not enough players")
 	}
 
-	this.Bracket = NewBracket(participantNumbers)
+	this.Bracket = NewBracket(this.Participants)
 	this.Bracket.tournament = this
-	this.Bracket.BuildDoubleElimBracket()
+	this.Bracket.BuildDoubleElimBracket(this.Participants)
 
 	//this.resolveBuys(session)
 
@@ -704,46 +701,15 @@ func (this *Tournament) BuildBrackets(session dbr.SessionRunner, subject string)
 
 }
 
-/*
-func (this *Tournament) resolveBuys(session dbr.SessionRunner) {
-
-	for _, v := range this.Bracket.Nodes {
-		if v.Type == PLAYER && v.Participant == -1 {
-			this.resolveBuy(session, v.Parent.node)
-		}
-	}
-}
-
-func (this *Tournament) resolveBuy(session dbr.SessionRunner, game *Node) {
-
-	slot := 0
-	if game.Left.node.Participant == -1 {
-		slot = 2
-	} else {
-		slot = 1
-	}
-
-	err := this.AddResult(session, game, slot)
-
-	if err != nil {
-		fmt.Printf("Unable to resolve game %d\n", game.Id)
-	}
-
-}
-*/
-
-func (this *Tournament) SaveResults() {
-
-}
-
 const layoutISO = "2006-01-02"
 
-func NewTournament2(userId int64, subjet string, accountId int64) *Tournament {
+func NewTournament2(userId int64, subject string, accountId int64) *Tournament {
 
+	Logger.Info("Enter")
 	t := new(Tournament)
 	t.AccountId = accountId
 	t.UserId = userId
-	t.Subject = subjet
+	t.Subject = subject
 	t.Typ = DOUBLE_ELIMINATION
 	t.Participants = make(map[ParticipantNumber]*Participant)
 	t.ParticipantsByPlayerId = make(map[int]*Participant)

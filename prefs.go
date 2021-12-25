@@ -145,7 +145,7 @@ func NewPreferences() *Preferences {
 
 func (this *Preferences) AddPreference(name string, value string) {
 
-	fmt.Printf("AddPreference: %v, %v\n", name, value)
+	//fmt.Printf("AddPreference: %v, %v\n", name, value)
 
 	//	p := Preference{name, value}
 	//parts := strings.Split(name, ".")
@@ -191,7 +191,7 @@ func (this *Preferences) String() string {
 
 func (this *Preferences) findNode(name string, from *NameNode) *NameNode {
 
-	fmt.Printf("findNode: %s from %s\n", name, from.name)
+	//fmt.Printf("findNode: %s from %s\n", name, from.name)
 	if len(name) <= 0 {
 		return from
 	}
@@ -223,7 +223,7 @@ func (this *Preferences) GetPreferences(name string) map[string]string {
 	startNode := this.findNode(name, this.Root)
 
 	if startNode != nil {
-		fmt.Printf("GetPreferences starting from node: %v\n", startNode)
+		//fmt.Printf("GetPreferences starting from node: %v\n", startNode)
 		return startNode.getPreferences()
 	}
 	return make(map[string]string, 0)
@@ -251,7 +251,7 @@ func DefaultPreferences() *Preferences {
 
 func LoadPreferences(tx dbr.SessionRunner, subject string) (*Preferences, error) {
 
-	fmt.Printf("LoadPreferences\n")
+	//fmt.Printf("LoadPreferences\n")
 	result, err := tx.Select("preferences_data").From("preferences").
 		Where("subject = ?", subject).Rows()
 
@@ -260,24 +260,22 @@ func LoadPreferences(tx dbr.SessionRunner, subject string) (*Preferences, error)
 	if err != nil || result.Next() == false {
 		p := DefaultPreferences()
 		StorePreferences(tx, *p, subject)
-		fmt.Printf("Select Preferences failed: %v\n", err)
-		fmt.Printf("returning default preferences data\n")
+		//fmt.Printf("Select Preferences failed: %v\n", err)
+		//fmt.Printf("returning default preferences data\n")
 		return p, nil
 	}
 	var data []byte
 	if err := result.Scan(&data); err != nil {
-		fmt.Printf("Scan preferences data failed: %v\n", err)
+		Logger.Errorf("Scan preferences data failed: %v\n", err)
 		return nil, nil
 	}
 
 	result.Close()
 
-	fmt.Printf("data = %v\n", string(data))
-
 	var prefs Preferences
 
 	if err = json.Unmarshal(data, &prefs); err != nil {
-		fmt.Printf("Unmarshal preferences data failed: %v", err)
+		Logger.Errorf("Unmarshal preferences data failed: %v", err)
 		return nil, nil
 	}
 	return &prefs, nil
@@ -285,7 +283,7 @@ func LoadPreferences(tx dbr.SessionRunner, subject string) (*Preferences, error)
 
 func StorePreferences(tx dbr.SessionRunner, prefs Preferences, subject string) error {
 
-	fmt.Printf("Store preferences\n")
+	//	fmt.Printf("Store preferences\n")
 
 	//result, err := db.Select("preferences_data").From("preferences").
 	//		Where("user_id = ? and id = 1", userId).Rows()
@@ -301,20 +299,18 @@ func StorePreferences(tx dbr.SessionRunner, prefs Preferences, subject string) e
 
 	var data []byte
 	if data, err = json.Marshal(&prefs); err != nil {
-		fmt.Printf("Store,Marshall Preferences failed: %v", err)
+		Logger.Errorf("Store,Marshall Preferences failed: %v", err)
 		return err
 	}
 
 	if update {
-		fmt.Printf("Store preferences - update\n")
 		UpdateStmt := tx.Update("preferences").Set("preferences_data", data)
 		_, err := UpdateStmt.Where("subject = ? and id = 1", subject).Exec()
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
+			Logger.Errorf("Error: %v\n", err)
 			return err
 		}
 	} else {
-		fmt.Printf("Store preferences - insert\n")
 		var result sql.Result
 		result, err = tx.InsertInto("preferences").
 			Columns("id", "subject", "tournament_id", "preferences_data").
@@ -325,7 +321,7 @@ func StorePreferences(tx dbr.SessionRunner, prefs Preferences, subject string) e
 		}
 		c, err = result.RowsAffected()
 		if c <= 1 || err != nil {
-			fmt.Printf("Error: %v\n", err)
+			Logger.Errorf("Error: %v\n", err)
 			return err
 		}
 
