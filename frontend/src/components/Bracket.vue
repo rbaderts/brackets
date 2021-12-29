@@ -8,13 +8,13 @@ import { defineComponent} from 'vue';
 
 var theBracket;
 
-let COLORS = {
-    UpperBackground: constants.COLOR_17,
-    LowerBackground: constants.COLOR_18,
-    GameIDBackgroundColor: constants.COLOR_13,
-    LosersGameIdBackgroundColor: constants.COLOR_26,
-    PendingGameIdBackgroundColor: constants.COLOR_1
-}
+//let COLORS = {
+    //Uppe/rBackground: constants.COLOR_17,
+    //LowerBackground: constants.COLOR_18,
+    //GameIDBackgroundColor: constants.COLOR_13,
+    //LosersGameIdBackgroundColor: constants.COLOR_26,
+   // PendingGameIdBackgroundColor: constants.COLOR_1
+//}
 
 
 function drawSegment(ctx, srcX, srcY, dstX, dstY) {
@@ -341,7 +341,7 @@ class Bracket {
                     //    ((bracket.depth+1) * constants.NODE_SPACE*2);
                     console.log("losersDepth = " + bracket.losersDepth);
                     let losersDepth = bracket.losersDepth;
-                    let width = (losersDepth+1) * (constants.NODE_WIDTH + constants.NODE_SPACE)
+                    let width = (losersDepth+1) * (constants.NODE_WIDTH + constants.NODE_SPACE) + 180
                     let height = bracket.root.span.upper + bracket.root.span.lower + 100;
 
                     return {width: width, height: height}
@@ -414,12 +414,7 @@ class Bracket {
      width: number;
      selection: number;
 
-     upperBGColor: chroma.Color;
-     lowerBGColor: chroma.Color;
      connectorColor: chroma.Color;
-     gameIdBGColor: chroma.Color;
-     losersGameIdBGColor: chroma.Color;
-     pendingGameIdBGColor: chroma.Color;
      Id: number;
      participant: number;
      dropGame: number;
@@ -448,16 +443,8 @@ class Bracket {
           this.span = TheGame.span;
           this.gridSpan = TheGame.gridSpan;
           this.width = constants.NODE_WIDTH;
-          this.upperBGColor = chroma(itsBracket.Preferences.GetSlot1BGColor());
-          this.lowerBGColor = chroma(itsBracket.Preferences.GetSlot2BGColor());
           this.connectorColor = chroma(itsBracket.Preferences.GetConnectorColor());
 
-//          this.gameIdBGColor = chroma(constants.COLOR_13);
-//          this.losersGameIdBGColor = chroma(constants.COLOR_26);
-          this.gameIdBGColor = chroma(itsBracket.Preferences.GetGameWinnersBackgroundColor());
-          this.losersGameIdBGColor = chroma(itsBracket.Preferences.GetGameLosersBackgroundColor());
-
-          this.pendingGameIdBGColor = chroma(constants.COLOR_1);
           this.Id = TheGame.id;
           this.participant = TheGame.participant;
           this.dropGame = TheGame.drop;
@@ -556,11 +543,13 @@ class Bracket {
 
               ctx.fillStyle = color1.alpha(alpha);
               if (reversed) {
+                  ctx.fillStyle = color1.alpha(alpha);
                   ctx.strokeRect(x + 24, y, width - 24, constants.NODE_HEIGHT);
                   ctx.fillRect(x + 25, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
                   ctx.fillStyle = color2.alpha(alpha);
                   ctx.fillRect(x + 25, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
               } else {
+                  ctx.fillStyle = color1.alpha(alpha);
                   ctx.strokeRect(x, y, width - 24, constants.NODE_HEIGHT);
                   ctx.fillRect(x + 1, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
                   ctx.fillStyle = color2.alpha(alpha);
@@ -632,7 +621,7 @@ class Bracket {
                   clr = chroma(constants.COLOR_1);
               } else {
                   //clr = chroma(constants.COLOR_13);
-                  clr = this.TheBracket.Preferences.GetGameFontColor()
+                  clr = chroma(this.TheBracket.Preferences.GetGameFontColor())
               }
 //              clr = chroma('black');
 //              ctx.strokeStyle = clr.brighten(2);
@@ -642,14 +631,14 @@ class Bracket {
 
                   if (winningSlot != 0) {
                       if (winningSlot == slot) {
-                          ctx.font = "18px Arial";
+                          ctx.font = "20px Arial";
                           ctx.fontWeight = "bold";
                           //clr = chroma(constants.COLOR_22)
-                          clr = this.TheBracket.Preferences.GetGameWinnersFontColor()
+                          clr = chroma(this.TheBracket.Preferences.GetGameWinnersFontColor())
                       } else {
                           ctx.fontWeight = "lighter";
                           ctx.font = "13px Arial";
-                          clr = this.TheBracket.Preferences.GetGameFontColor()
+                          clr = chroma(this.TheBracket.Preferences.GetGameLosersFontColor())
                       }
                       ctx.strokeStyle = clr;
                       ctx.fillStyle = clr;
@@ -696,11 +685,11 @@ class Bracket {
           }
 
 
-          renderGame (canvas) {
+          renderGame (ctx, selection) {
 
               //let height = canvas.height;
               //let width = canvas.width;
-              let ctx = canvas.getContext('2d');
+              //let ctx = canvas.getContext('2d');
 
               ctx.strokeStyle = chroma("black");
               ctx.fillStyle = chroma("black");
@@ -724,29 +713,35 @@ class Bracket {
               this.renderPlayerIndicator(ctx, 1, winningSlot);
               this.renderPlayerIndicator(ctx, 2, winningSlot);
 
-              ctx.strokeStyle = chroma("black").alpha(alpha)
+              ctx.strokeStyle = chroma(this.TheBracket.Preferences.GetGameFontColor());
+//              ctx.strokeStyle = chroma("black").alpha(alpha)
 
               if (this.game.state.result != null) {
-                  ctx.strokeStyle = chroma("black").brighten(brighten)
+//                  ctx.strokeStyle = ctx.strokeStyle.brighten(brighten)
               }
 
               this.renderGameId(ctx,false);
+              if (selection != null && (selection.node.Id == this.Id)) {
+                  this.highlight(ctx, this.x, this.y, false)
+              }
           }
 
           renderGameId (ctx, reversed) {
               let width = constants.NODE_WIDTH;
 
               ctx.textAlign = "center";
-              ctx.font = "16px Arial";
+              ctx.font = "15px Arial";
+              ctx.fontWeight = "bold";
               if (reversed) {
-                  ctx.strokeText(this.Id, 12, (constants.NODE_HEIGHT / 2 + 6));
+                  ctx.strokeText(this.Id, this.x+12, this.y + (constants.NODE_HEIGHT / 2 + 6));
               } else {
-                  ctx.strokeText(this.Id, width - 12, (constants.NODE_HEIGHT / 2 + 6))
+                  ctx.strokeText(this.Id, this.x + width - 12, this.y + (constants.NODE_HEIGHT / 2 + 6))
               }
+
           }
 
           renderPlayerIndicator (ctx, slot, winningSlot) {
-              let height = constants.NODE_HEIGHT
+
               let width = constants.NODE_WIDTH
               ctx.font = "14px Arial";
               ctx.textAlign = "center";
@@ -754,36 +749,39 @@ class Bracket {
               let display = "TBD"
               display = this.getDisplay(slot);
 
-              var clr;
-              clr = chroma('black');
+              var clr = null;
+
+              if (display.startsWith(">>") === true) {
+                  clr = chroma(constants.COLOR_1);
+              } else {
+                  //clr = chroma(constants.COLOR_13);
+                  clr = chroma(this.TheBracket.Preferences.GetGameFontColor())
+              }
               ctx.strokeStyle = clr;
               ctx.fillStyle = clr;
-              if (clr != null) {
 
-                  if (winningSlot != 0) {
-                      if (winningSlot == slot) {
-                          ctx.font = "17px Arial";
-	                      clr = this.TheBracket.Preferences.GetGameWinnersFontColor()
-                      } else {
-                          ctx.font = "12px Arial";
-                          clr = clr.alpha(0.7)
-                      }
-                      ctx.strokeStyle = clr;
-                      ctx.fillStyle = clr;
-                  }
-
-//                  if (this.left != null && this.left.ResolvedBuy()) {
-//                      display = display + " *";
-//                  }
-                  var yoffset = 0;
-                  if (slot == 1) {
-                      yoffset = (height / 2) - 5;
+              if (winningSlot != 0) {
+                  if (winningSlot == slot) {
+                       ctx.font = "20px Arial";
+                       ctx.fontWeight = "bold";
+                       //clr = chroma(constants.COLOR_22)
+                       clr = chroma(this.TheBracket.Preferences.GetGameWinnersFontColor())
                   } else {
-                      yoffset = height - 5;
+                       ctx.fontWeight = "lighter";
+                       ctx.font = "13px Arial";
+                       clr = chroma(this.TheBracket.Preferences.GetGameLosersFontColor())
                   }
-
-                  ctx.strokeText(display, ((width - 24) / 2), yoffset);
+                  ctx.strokeStyle = clr;
+                  ctx.fillStyle = clr;
               }
+
+              var yoffset = 0;
+              if (slot == 1) {
+                  yoffset = (constants.NODE_HEIGHT / 2) - 5;
+              } else {
+                  yoffset = (constants.NODE_HEIGHT) - 5;
+              }
+              ctx.strokeText(display, this.x + ((width - 24) / 2), this.y + yoffset);
           }
 
           frameGame (ctx, alpha)  {
@@ -795,38 +793,80 @@ class Bracket {
               ctx.textAlign = "Left";
               ctx.lineWidth = 1;
               var borderColor = chroma(this.TheBracket.Preferences.GetGameBorderColor());
-              ctx.strokeStyle = chroma(borderColor);
+              ctx.strokeStyle = borderColor;
 
-              ctx.clearRect(0, 0, width, height);
-              ctx.strokeRect(0, 0, width, height);
 
-              ctx.strokeRect(0, 0, width - 24, height);
+              ctx.clearRect(this.x, this.y, width, height);
+              ctx.strokeRect(this.x, this.y, width, height);
+              ctx.strokeRect(this.x, this.y, width - 25, height);
+              var bkColor;
+              if (this.isLosersSide) {
+                  bkColor = chroma(this.TheBracket.Preferences.GetGameLosersBackgroundColor());
+              } else {
+                  bkColor = chroma(this.TheBracket.Preferences.GetGameWinnersBackgroundColor());
+              }
+              ctx.fillStyle = bkColor.alpha(alpha);
+              ctx.strokeStyle = bkColor.alpha(alpha);
+              ctx.fillRect(this.x+1, this.y+1, width - 2,height - 2);
 
 
               var clr1 = chroma(this.TheBracket.Preferences.GetSlot1BGColor());
-              ctx.fillStyle = clr1;
-              ctx.fillRect(1, 1, width - 26,height / 2 - 2);
+              ctx.fillStyle = clr1.alpha(alpha);
+              ctx.strokeStyle = clr1.alpha(alpha);
+              ctx.fillRect(this.x+1, this.y+1, width - 26,height / 2 - 2);
 
               var clr2 = chroma(this.TheBracket.Preferences.GetSlot2BGColor());
-              ctx.fillStyle = clr2;
-              ctx.fillRect(1, 1 + (height / 2), width - 26, height / 2 - 2);
+              ctx.fillStyle = clr2.alpha(alpha);
+              ctx.strokeStyle = clr2.alpha(alpha);
+              ctx.fillRect(this.x+1, this.y + 1 + (height / 2), width - 26, height / 2 - 2);
 
+              ctx.fillStyle = borderColor.alpha(alpha);
+              ctx.beginPath();
+              ctx.moveTo(this.x, this.y + height/2);
+              ctx.lineTo(this.x + width - 25, this.y + height / 2);
+              ctx.closePath();
+              ctx.stroke();
+
+/*
               var clr;
               if (this.isLosersSide) {
                   clr = chroma(COLORS.LosersGameIdBackgroundColor);
               } else {
                   clr = chroma(COLORS.GameIDBackgroundColor);
               }
+              */
 
-              ctx.fillStyle = clr.alpha(alpha);
-              ctx.fillRect(width - 23,  1, 22, height - 2);
-              ctx.beginPath();
-              ctx.moveTo(0,height/2);
-              ctx.lineTo(width - 24, height / 2);
-              ctx.closePath();
-              ctx.stroke();
+              //ctx.fillRect(width - 23,  1, 22, height - 2);
+//              ctx.strokeRect(this.x, this.y, width - 24, constants.NODE_HEIGHT);
+//              ctx.fillRect(this.x + 1, this.y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
+//              ctx.fillStyle = color2.alpha(alpha);
+    //          ctx.fillRect(x + 1, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
+//              ctx.beginPath();
+ //             ctx.moveTo(0,height/2);
+ ///             ctx.lineTo(width - 24, height / 2);
+  //            ctx.closePath();
+  //            ctx.stroke();
 
-          }
+/*
+              ctx.strokeStyle = this.TheBracket.Preferences.GetGameBorderColor();
+
+              ctx.fillStyle = clr1.alpha(alpha);
+              let reversed = false;
+              if (reversed) {
+                  ctx.strokeRect(x + 24, y, width - 24, constants.NODE_HEIGHT);
+                  ctx.fillRect(x + 25, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
+                  ctx.fillStyle = color2.alpha(alpha);
+                  ctx.fillRect(x + 25, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
+              } else {
+                  ctx.strokeRect(x, y, width - 24, constants.NODE_HEIGHT);
+                  ctx.fillRect(x + 1, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
+                  ctx.fillStyle = color2.alpha(alpha);
+                  ctx.fillRect(x + 1, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
+              }
+*/
+
+
+    }
 
 
               /*
@@ -834,6 +874,11 @@ class Bracket {
 			   */
           renderRightToLeft (ctx, x, y, level, degree, selection, columns) {
 
+              this.x = x;
+              this.y = y;
+              this.renderGame(ctx, selection);
+
+/*
               var width = constants.NODE_WIDTH;
 
               let lev = level;
@@ -853,6 +898,9 @@ class Bracket {
                       columns.winners.set(lev, col);
                   }
               }
+              */
+
+              /*
 
               ctx.strokeStyle = chroma(this.TheBracket.Preferences.GetGameBorderColor());
 
@@ -898,13 +946,17 @@ class Bracket {
                  ctx.strokeStyle = chroma(constants.COLOR_17);
               }
 
-              this.drawID(ctx, x, y, width, false);
+              this.drawID(ctx, x, y, false);
 
-              let leftDepth = 0, rightDepth = 0;
 
               let slot1Participant = this.participant1
               let slot2Participant = this.participant2
+              */
 
+              let leftDepth = 0, rightDepth = 0;
+              var brighten = 1;
+              let width = constants.NODE_WIDTH;
+              var space = constants.NODE_SPACE;
               if (this.left) {
 
                     ctx.strokeStyle = this.connectorColor.brighten(brighten)
@@ -1030,18 +1082,20 @@ class Bracket {
  function DefaultPreferences() {
 
      let prefs = {
-         "brackets.background-color":"#3C3D40",
-         "brackets.connector-color":"#FAF30B",
-         "brackets.game.border-color":"#97a872",
-         "brackets.game.font-color":"#863845",
-         "brackets.game.losers.background-color":"#384863",
-         "brackets.game.slot1.background-color":"#D5D5D7",
-         "brackets.game.slot1.font-color":"#272822",
-         "brackets.game.slot2.background-color":"#EBEBEF",
-         "brackets.game.slot2.font-color":"#272822",
-         "brackets.game.winners.background-color":"#863845",
-         "brackets.game.winners.font-color":"#57294b"
+	"brackets.background-color": "#bfbfcb",
+	"brackets.connector-color": "#FAF30B",
+	"brackets.game.border-color": "#322947",
+	"brackets.game.slot1.background-color": "#D5D5D7",
+	"brackets.game.slot2.background-color": "#AFAFD7",
+	"brackets.game.slot1.font-color": "#272828",
+	"brackets.game.slot2.font-color": "#272828",
+	"brackets.game.font-color": "#272828",
+	"brackets.game.winners.font-color": "#a7090b",
+	"brackets.game.losers.font-color": "#888888",
+	"brackets.game.winners.background-color": "#863845",
+	"brackets.game.losers.background-color": "#384863"
      }
+
      let p = new Preferences(prefs)
      return p
 
@@ -1067,6 +1121,9 @@ class Bracket {
     }
     GetGameWinnersFontColor() {
             return this.prefs["brackets.game.winners.font-color"];
+    }
+    GetGameLosersFontColor() {
+            return this.prefs["brackets.game.losers.font-color"];
     }
     GetGameBorderColor () {
             return this.prefs["brackets.game.border-color"];
@@ -1165,7 +1222,7 @@ class Bracket {
                     })
                     .catch(function (error) {
                         cmp.error = error.toString()
-                        console.log(error);
+                        ronsole.log(error);
                     })
                     .then(function () {
                         cmp.isLoading = false
