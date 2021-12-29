@@ -1082,19 +1082,18 @@ class Bracket {
  function DefaultPreferences() {
 
      let prefs = {
-	"brackets.background-color": "#bfbfcb",
-	"brackets.connector-color": "#FAF30B",
-	"brackets.game.border-color": "#322947",
-	"brackets.game.slot1.background-color": "#D5D5D7",
-	"brackets.game.slot2.background-color": "#AFAFD7",
-	"brackets.game.slot1.font-color": "#272828",
-	"brackets.game.slot2.font-color": "#272828",
-	"brackets.game.font-color": "#272828",
-	"brackets.game.winners.font-color": "#a7090b",
-	"brackets.game.losers.font-color": "#888888",
-	"brackets.game.winners.background-color": "#863845",
-	"brackets.game.losers.background-color": "#384863"
-     }
+    "brackets.background-color": "#E4DEDD",
+	"brackets.connector-color": "#F64740",
+	"brackets.game.border-color": "#1F1C21",
+	"brackets.game.slot1.background-color": "#C4D6B0",
+	"brackets.game.slot2.background-color": "#477998",
+	"brackets.game.slot1.font-color": "#221C1B",
+	"brackets.game.slot2.font-color": "#221C1B",
+	"brackets.game.font-color": "#221C1B",
+	"brackets.game.winners.font-color": "#291F1E",
+	"brackets.game.losers.font-color": "#F6F4F3",
+	"brackets.game.winners.background-color": "#F64740",
+	"brackets.game.losers.background-color": "#A3333D"}
 
      let p = new Preferences(prefs)
      return p
