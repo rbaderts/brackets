@@ -8,15 +8,6 @@ import { defineComponent} from 'vue';
 
 var theBracket;
 
-//let COLORS = {
-    //Uppe/rBackground: constants.COLOR_17,
-    //LowerBackground: constants.COLOR_18,
-    //GameIDBackgroundColor: constants.COLOR_13,
-    //LosersGameIdBackgroundColor: constants.COLOR_26,
-   // PendingGameIdBackgroundColor: constants.COLOR_1
-//}
-
-
 function drawSegment(ctx, srcX, srcY, dstX, dstY) {
 
         ctx.beginPath()
@@ -53,9 +44,6 @@ const material_font = new FontFace( 'material-icons',
   'url(https://fonts.gstatic.com/s/materialicons/v48/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2)' );
 document.fonts.add( material_font ); // add it to the document's FontFaceSet
 
-///const framework7_font = new FontFace( 'framework7-icons',
- // 'url(https://cdn.jsdelivr.net/gh/framework7io/framework7-icons@master/fonts/Framework7Icons-Regular.woff2)' );
-//document.fonts.add( framework7_font );
 
 
 class Bracket {
@@ -74,7 +62,6 @@ class Bracket {
     drawcenter : number;
     ratio: number;
 
-    //BracketTable: HTMLElement | null;
     Preferences: Preferences;
 
     width: number;
@@ -126,7 +113,6 @@ class Bracket {
 
     getMousePos(canvas, evt) {
         var rect = canvas.getBoundingClientRect();
-        //console.log("x: " + (evt.clientX - rect.left) + ", y: " + (evt.clientY - rect.top));
         return {
             x: evt.clientX - rect.left,
             y: evt.clientY - rect.top
@@ -135,16 +121,35 @@ class Bracket {
 
     keypressHandler (evt) {
 
-        //console.log("code: " + evt.code)
         if (this.selection != null) {
+
+
+            var hasWinner = false;
+            if (this.selection.node.state.result != null) {
+                hasWinner = true;
+            }
             var slot = 0
             if (evt.code == 'Digit1') {
                 slot = 1
             } else if (evt.code == 'Digit2') {
                 slot = 2
+            } else if ((evt.code == 'KeyU') && (hasWinner == true)) {
+                let self = this
+                var url = "/tournaments/" + self.tournamentId
+                    + "/games/" + this.selection.node.Id + "/winner";
+
+                axiosApiInstance.delete(url)
+                    .then(function (response) {
+                        self.update(response.data)
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+                    .then(function () {
+                    })
             }
 
-            if (slot != 0) {
+            if ((slot != 0) && (hasWinner == false)) {
                 var url = "/tournaments/" + this.tournamentId
                     + "/games/" + this.selection.node.Id + "/winner/"
                     + slot;
@@ -165,22 +170,7 @@ class Bracket {
                     })
                     .then(function () {
                     })
-            } else if (evt.code == 'KeyU') {
-                let self = this
-                var url = "/tournaments/" + self.tournamentId
-                    + "/games/" + this.selection.node.Id + "/winner";
-
-                axiosApiInstance.delete(url)
-                    .then(function (response) {
-                        self.update(response.data)
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    })
-                    .then(function () {
-                    })
-
-            }
+            } 
 
         }
     }
@@ -222,25 +212,11 @@ class Bracket {
               this.height = size.height;
               //resizeCanvasToDisplaySize(this.canvas);
 
-              //console.log("calculated size: " + size.height + " x " + size.width);
-              //console.log("this.canvas.width: " + canvas.width);
-              //console.log("this.canvas.height: " + canvas.height);
-
               this.ratio = calcRatio();
 
               console.log("*******size= " + JSON.stringify(size) + ", ratio = " + this.ratio)
           } 
 
-          
-
-/*
-          renderGrid() {
-              if (this.rootNode != null) {
-                   this.rootNode.renderGrid(this.RootGameCell.row, this.RootGameCell.col, 0, this.selection)
-              }
-          }
-          */
-  
 
         setup() {
 
@@ -254,15 +230,15 @@ class Bracket {
 
 
         }
-          render() {
+        render() {
 
-              let data = this.data;
-              let rootNode = this.rootNode;
-              let canvas = this.canvas;
+            let data = this.data;
+            let rootNode = this.rootNode;
+            let canvas = this.canvas;
 
-              let ctx;
-              if (canvas != null) {
-                  ctx = canvas.getContext('2d');
+            let ctx;
+            if (canvas != null) {
+                ctx = canvas.getContext('2d');
 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -271,55 +247,57 @@ class Bracket {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 if (this.orientation == constants.RIGHT_TO_LEFT) {
-                    let columns = this.renderRightToLeft(data, rootNode, canvas);
+                    this.renderRightToLeft(data, rootNode, canvas);
                 }
             }
-          };
-          renderRightToLeft (data, rootNode, canvas) {
+        };
 
-              let ctx = canvas.getContext('2d');
-              var width = this.width;
+        renderRightToLeft (data, rootNode, canvas) {
 
-              let drawcenter = this.height / 2 - 100;
-              if (rootNode) {
-                  drawcenter = rootNode.span.upper + 22;
-              }
+            let ctx = canvas.getContext('2d');
+            var width = this.width;
 
-              // Render winners line, and winner name (if the tourney is complete)
-            //  ctx.strokeStyle = chroma("black");
-              ctx.strokeStyle = chroma(this.Preferences.GetGameBorderColor());
+            let drawcenter = this.height / 2 - 100;
+            if (rootNode) {
+                drawcenter = rootNode.span.upper + 22;
+            }
 
-             ctx.lineWidth = 1;
-              ctx.beginPath();
-              ctx.moveTo(width - (constants.NODE_WIDTH + 10), drawcenter);
-              ctx.lineTo(width, drawcenter);
-              ctx.closePath();
-              ctx.stroke();
+            ctx.strokeStyle = chroma(constants.COLOR_3);
+            ctx.fillStyle = chroma(constants.COLOR_3);
+            ctx.textAlign = "center";
+            ctx.font = "36px Arial";
+            ctx.strokeText("Winners", width - 100, (drawcenter) - (this.height / 4));
 
-              ctx.strokeStyle = chroma(constants.COLOR_3);
-              ctx.fillStyle = chroma(constants.COLOR_3);
-              ctx.textAlign = "center";
-              ctx.font = "18px Arial";
-              var winner = this.getWinner();
-              ctx.strokeText(winner, width - ((constants.NODE_WIDTH + 10) / 2),
-                  (drawcenter) - 8);
 
-              let columns = {leftMostWinner: 1000, winners: new Map(), losers: new Map()};
+            ctx.strokeText("Losers", width - 100, (drawcenter) + (this.height / 4));
 
-              if (this.rootNode != null) {
-                this.rootNode.renderRightToLeft(ctx,
-                    (width) - (constants.NODE_WIDTH + (constants.NODE_WIDTH - 10)),
-                    (drawcenter) - (constants.NODE_HEIGHT / 2),
-                    1, rootNode.degree, this.selection, columns);
-              }
-              return columns
-          }
+            ctx.strokeStyle = chroma(this.Preferences.GetGameBorderColor());
 
-         getWinner () {
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(width - (constants.NODE_WIDTH + 10), drawcenter);
+            ctx.lineTo(width, drawcenter);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.strokeStyle = chroma(constants.COLOR_3);
+            ctx.fillStyle = chroma(constants.COLOR_3);
+            ctx.textAlign = "center";
+            ctx.font = "18px Arial";
+            var winner = this.getWinner();
+            ctx.strokeText(winner, width - ((constants.NODE_WIDTH + 10) / 2),
+                (drawcenter) - 8);
+
+            if (this.rootNode != null) {
+            this.rootNode.renderRightToLeft(ctx,
+                (width) - (constants.NODE_WIDTH + (constants.NODE_WIDTH - 10)),
+                (drawcenter) - (constants.NODE_HEIGHT / 2), this.selection)
+            }
+        }
+
+        getWinner () {
 
             if (this.data != null) {
-              //console.log("this.rootNode:" + this.data)
-              //console.log("this.rootNode.state.result: " + this.data.bracket.root.state.result)
               if ((this.data.bracket.root) && (this.data.bracket.root.state.result != null)) {
                   var winnerParticipantNum = this.data.bracket.root.state.result.winningParticipant
                   if (winnerParticipantNum > 0) {
@@ -332,54 +310,54 @@ class Bracket {
               }
               return "<TBD>"
             }
-          };
+        };
 
-            calcSize(bracket, rootNode) {
+        calcSize(bracket, rootNode) {
 
-                if (rootNode) {
-                    //let width = ((bracket.depth+1) * constants.NODE_WIDTH) +
-                    //    ((bracket.depth+1) * constants.NODE_SPACE*2);
-                    console.log("losersDepth = " + bracket.losersDepth);
-                    let losersDepth = bracket.losersDepth;
-                    let width = (losersDepth+1) * (constants.NODE_WIDTH + constants.NODE_SPACE) + 180
-                    let height = bracket.root.span.upper + bracket.root.span.lower + 100;
+            if (rootNode) {
+                //let width = ((bracket.depth+1) * constants.NODE_WIDTH) +
+                //    ((bracket.depth+1) * constants.NODE_SPACE*2);
+                console.log("losersDepth = " + bracket.losersDepth);
+                let losersDepth = bracket.losersDepth;
+                let width = (losersDepth+1) * (constants.NODE_WIDTH + constants.NODE_SPACE) + 180
+                let height = bracket.root.span.upper + bracket.root.span.lower + 100;
 
-                    return {width: width, height: height}
-                }
-                return {width: constants.WIDTH, height: constants.HEIGHT};
+                return {width: width, height: height}
             }
+            return {width: constants.WIDTH, height: constants.HEIGHT};
+        }
         
 
-            resizeCanvasToDisplaySize(canvas) {
-                // look up the size the canvas is being displayed
-                const width = canvas.clientWidth;
-                const height = canvas.clientHeight;
+        resizeCanvasToDisplaySize(canvas) {
+            // look up the size the canvas is being displayed
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
 
 
-                // If it's resolution does not match change it
-                if (canvas.width !== width || canvas.height !== height) {
-                    canvas.width = width;
-                    canvas.height = height;
-                    return true;
-                }
-
-                return false;
+            // If it's resolution does not match change it
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+                return true;
             }
 
-          update (tournament: Tournament): void {
-              this.tournamentId = tournament.id
-              //self.data = tournament;
-              this.data = tournament
-              if (this.data.bracket.rootNodeId != 0) {
-                  let br = this.data.bracket
-                  var finalGame = new Game(this, tournament, br, br.nodes[br.rootNodeId]);
-                  this.rootNode = finalGame;
-                  this.resize(tournament, finalGame, this.canvas);
-                  this.render()
-              } else {
-                  console.log("No rootNodeID")
-              }
-          }
+            return false;
+        }
+
+        update (tournament: Tournament): void {
+            this.tournamentId = tournament.id
+            //self.data = tournament;
+            this.data = tournament
+            if (this.data.bracket.rootNodeId != 0) {
+                let br = this.data.bracket
+                var finalGame = new Game(this, tournament, br, br.nodes[br.rootNodeId]);
+                this.rootNode = finalGame;
+                this.resize(tournament, finalGame, this.canvas);
+                this.render()
+            } else {
+                console.log("No rootNodeID")
+            }
+        }
 
    }
   /*
@@ -398,7 +376,6 @@ class Bracket {
      TheBracket: Bracket;
      tournament: Tournament;
      bracket: IBracket
-     //isLeaf: boolean;
      orientation: number;
      left: Game | null;
      right: Game | null;
@@ -427,7 +404,6 @@ class Bracket {
           this.tournament = Tournament;
           this.bracket = bracket;
           this.game = TheGame;
-//          this.isLeaf = false;
           this.selection = 0;
 
           this.orientation = constants.RIGHT_TO_LEFT
@@ -456,18 +432,7 @@ class Bracket {
               this.isLosersSide = false
           }
 
-          /*
-          if (BracketNode.slot1 != null) {
-              this.slot1 = new Slot(BracketNode.slot1, 1)
-          }
-
-          if (BracketNode.slot2 != null) {
-              this.slot2 = new Slot(BracketNode.slot2, 2)
-          }
-           */
-
           if ((TheGame.left.id == 0) && (TheGame.right.id == 0)) {
-//              this.isLeaf = true;
               let Null = { valueOf: ()=>null }
               return;
           }
@@ -510,15 +475,9 @@ class Bracket {
           } 
       }
 
-/*
-    log() {
-        console.log("node id: " + this.Id + ", type: " + this.nodeType);
-        console.log("   left: " + this.left);
-        console.log("   right: " + this.right);
-        console.log("   dropGame1: " + this.dropGame1);
-        console.log("   dropGame2: " + this.dropGame2);
+    getLevel() {
+        this.game.level;
     }
-    */
 
     playerName(num) {
         var p = this.tournament.participants[num];
@@ -529,577 +488,292 @@ class Bracket {
         }
     }
 
-    frameBox (ctx, x, y, alpha, color1, color2, reversed) {
-
-              let width = constants.NODE_WIDTH;
-              // draw the box
-              ctx.textAlign = "Left";
-              ctx.lineWidth = 1;
-
-              ctx.clearRect(x, y, width, constants.NODE_HEIGHT);
-              ctx.strokeRect(x, y, width, constants.NODE_HEIGHT);
-
-              ctx.strokeStyle = this.TheBracket.Preferences.GetGameBorderColor();
-
-              ctx.fillStyle = color1.alpha(alpha);
-              if (reversed) {
-                  ctx.fillStyle = color1.alpha(alpha);
-                  ctx.strokeRect(x + 24, y, width - 24, constants.NODE_HEIGHT);
-                  ctx.fillRect(x + 25, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
-                  ctx.fillStyle = color2.alpha(alpha);
-                  ctx.fillRect(x + 25, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
-              } else {
-                  ctx.fillStyle = color1.alpha(alpha);
-                  ctx.strokeRect(x, y, width - 24, constants.NODE_HEIGHT);
-                  ctx.fillRect(x + 1, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
-                  ctx.fillStyle = color2.alpha(alpha);
-                  ctx.fillRect(x + 1, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
-              }
-
-
-    }
-
-    fillBox (ctx, x, y, alpha, color, reversed) {
-
-       let width = constants.NODE_WIDTH;
-              ctx.fillStyle = color.alpha(alpha);
-              if (reversed) {
-                  ctx.fillRect(x + 1, y + 1, 22, constants.NODE_HEIGHT - 2);
-                  ctx.beginPath();
-                  ctx.moveTo(x + 24, y + (constants.NODE_HEIGHT / 2));
-                  ctx.lineTo(x + width, y + (constants.NODE_HEIGHT / 2));
-              } else {
-                  ctx.fillRect(x + width - 23, y + 1, 22, constants.NODE_HEIGHT - 2);
-                  ctx.beginPath();
-                  ctx.moveTo(x, y + (constants.NODE_HEIGHT / 2));
-                  ctx.lineTo(x + (width) - 24, y + (constants.NODE_HEIGHT / 2));
-              }
-
-              ctx.closePath();
-              ctx.stroke();
-              ctx.lineWidth = 1;
-
-    }
-
-    highlight (ctx, x, y, reversed) {
+    highlight (ctx, reversed) {
 
         let width = constants.NODE_WIDTH;
         ctx.strokeStyle = chroma(constants.COLOR_22);
         ctx.lineWidth = 3;
         if (reversed) {
-            ctx.strokeRect(x + 24, y, width - 24, constants.NODE_HEIGHT);
-            ctx.strokeRect(x, y, width, constants.NODE_HEIGHT);
+            ctx.strokeRect(this.x + 24, this.y, width - 26, constants.NODE_HEIGHT);
+            ctx.strokeRect(this.x, this.y, width, constants.NODE_HEIGHT);
         } else {
-            ctx.strokeRect(x, y, width - 24, constants.NODE_HEIGHT);
-            ctx.strokeRect(x, y, width, constants.NODE_HEIGHT);
+            ctx.strokeRect(this.x, this.y, width - 26, constants.NODE_HEIGHT);
+            ctx.strokeRect(this.x, this.y, width, constants.NODE_HEIGHT);
         }
 
         ctx.lineWidth = 1;
 
     }
 
+    renderGame (ctx, selection) {
 
-    calcTextColor (slot) {
-        return chroma(constants.COLOR_1);
-    }
+        ctx.strokeStyle = chroma("black");
+        ctx.fillStyle = chroma("black");
+        var darken = 0;
+        if (this.game.state.result != null) {
+            ctx.strokeStyle = chroma("black");
+            ctx.fillStyle = chroma("black");
+            darken = 2;
+        }
 
-          drawPlayerIndicator  (ctx, x, y, slot, reversed, winningSlot) {
+        this.frameGame(ctx,  darken)
 
-              let width = constants.NODE_WIDTH;
-              ctx.font = "14px Arial";
-              ctx.fontWeight = "bold";
-              ctx.textAlign = "center";
+        var winningSlot = 0;
+        if (this.game.state.result != null) {
+            winningSlot = this.game.state.result.winningSlot;
+        }
 
-              let display = "TBD";
+        this.renderPlayerIndicator(ctx, 1, winningSlot);
+        this.renderPlayerIndicator(ctx, 2, winningSlot);
 
-              display = this.getDisplay(slot);
-              // alpha-b-circle
+        ctx.strokeStyle = chroma(this.TheBracket.Preferences.GetGameFontColor());
 
-              var clr;
-
-              if (display.startsWith(">>") === true) {
-                  clr = chroma(constants.COLOR_1);
-              } else {
-                  //clr = chroma(constants.COLOR_13);
-                  clr = chroma(this.TheBracket.Preferences.GetGameFontColor())
-              }
-//              clr = chroma('black');
-//              ctx.strokeStyle = clr.brighten(2);
-              ctx.strokeStyle = clr;
-              ctx.fillStyle = clr;
-              if (clr != null) {
-
-                  if (winningSlot != 0) {
-                      if (winningSlot == slot) {
-                          ctx.font = "20px Arial";
-                          ctx.fontWeight = "bold";
-                          //clr = chroma(constants.COLOR_22)
-                          clr = chroma(this.TheBracket.Preferences.GetGameWinnersFontColor())
-                      } else {
-                          ctx.fontWeight = "lighter";
-                          ctx.font = "13px Arial";
-                          clr = chroma(this.TheBracket.Preferences.GetGameLosersFontColor())
-                      }
-                      ctx.strokeStyle = clr;
-                      ctx.fillStyle = clr;
-                  }
-
-//                  if (this.left != null && this.left.ResolvedBuy()) {
-//                      display = display + " *";
-//                  }
-
-                  var yoffset = 0;
-                  if (slot == 1) {
-                      yoffset = (constants.NODE_HEIGHT / 2) - 5;
-                  } else {
-                      yoffset = (constants.NODE_HEIGHT) - 5;
-                  }
-
-                  if ((slot == 2) && (this.game.nodeType == 4) && (this.game.challengerUpOne)) {
-                      display = display + " ++";
-                  }
-
-                  if (display == "BUY") {
-
-                     ctx.fillStyle = 'blue';
-                     ctx.font = '24px material-icons';
-                     ctx.fillText("stars", x + ((width - 24) / 2), y + yoffset + 2)
-                  } else {
-                      ctx.fillText(display, x + ((width - 24) / 2), y + yoffset);
-                  }
-                 ctx.fontWeight = "normal";
-              }
-          }
-
-         drawID (ctx, x, y, reversed) {
-
-              let width = constants.NODE_WIDTH;
-              ctx.textAlign = "center";
-              ctx.font = "15px Arial";
-              ctx.fontWeight = "bold";
-              if (reversed) {
-                  ctx.strokeText(this.Id, x + 12, y + (constants.NODE_HEIGHT / 2 + 6));
-              } else {
-                  ctx.strokeText(this.Id, x + width - 12, y + (constants.NODE_HEIGHT / 2 + 6))
-              }
-          }
-
-
-          renderGame (ctx, selection) {
-
-              //let height = canvas.height;
-              //let width = canvas.width;
-              //let ctx = canvas.getContext('2d');
-
-              ctx.strokeStyle = chroma("black");
-              ctx.fillStyle = chroma("black");
-              var alpha = 1.0;
-              var brighten = 1;
-              if (this.game.state.result != null) {
-                  //ctx.strokeStyle = chroma("black").brighten(3);
-                  ctx.strokeStyle = chroma("black");
-                  ctx.fillStyle = chroma("black");
-                  alpha = 0.6;
-                  brighten = 1;
-              }
-
-              this.frameGame(ctx,  alpha)
-
-              var winningSlot = 0;
-              if (this.game.state.result != null) {
-                  winningSlot = this.game.state.result.winningSlot;
-              }
-
-              this.renderPlayerIndicator(ctx, 1, winningSlot);
-              this.renderPlayerIndicator(ctx, 2, winningSlot);
-
-              ctx.strokeStyle = chroma(this.TheBracket.Preferences.GetGameFontColor());
-//              ctx.strokeStyle = chroma("black").alpha(alpha)
-
-              if (this.game.state.result != null) {
-//                  ctx.strokeStyle = ctx.strokeStyle.brighten(brighten)
-              }
-
-              this.renderGameId(ctx,false);
-              if (selection != null && (selection.node.Id == this.Id)) {
-                  this.highlight(ctx, this.x, this.y, false)
-              }
-          }
-
-          renderGameId (ctx, reversed) {
-              let width = constants.NODE_WIDTH;
-
-              ctx.textAlign = "center";
-              ctx.font = "15px Arial";
-              ctx.fontWeight = "bold";
-              if (reversed) {
-                  ctx.strokeText(this.Id, this.x+12, this.y + (constants.NODE_HEIGHT / 2 + 6));
-              } else {
-                  ctx.strokeText(this.Id, this.x + width - 12, this.y + (constants.NODE_HEIGHT / 2 + 6))
-              }
-
-          }
-
-          renderPlayerIndicator (ctx, slot, winningSlot) {
-
-              let width = constants.NODE_WIDTH
-              ctx.font = "14px Arial";
-              ctx.textAlign = "center";
-
-              let display = "TBD"
-              display = this.getDisplay(slot);
-
-              var clr = null;
-
-              if (display.startsWith(">>") === true) {
-                  clr = chroma(constants.COLOR_1);
-              } else {
-                  //clr = chroma(constants.COLOR_13);
-                  clr = chroma(this.TheBracket.Preferences.GetGameFontColor())
-              }
-              ctx.strokeStyle = clr;
-              ctx.fillStyle = clr;
-
-              if (winningSlot != 0) {
-                  if (winningSlot == slot) {
-                       ctx.font = "20px Arial";
-                       ctx.fontWeight = "bold";
-                       //clr = chroma(constants.COLOR_22)
-                       clr = chroma(this.TheBracket.Preferences.GetGameWinnersFontColor())
-                  } else {
-                       ctx.fontWeight = "lighter";
-                       ctx.font = "13px Arial";
-                       clr = chroma(this.TheBracket.Preferences.GetGameLosersFontColor())
-                  }
-                  ctx.strokeStyle = clr;
-                  ctx.fillStyle = clr;
-              }
-
-              var yoffset = 0;
-              if (slot == 1) {
-                  yoffset = (constants.NODE_HEIGHT / 2) - 5;
-              } else {
-                  yoffset = (constants.NODE_HEIGHT) - 5;
-              }
-              ctx.strokeText(display, this.x + ((width - 24) / 2), this.y + yoffset);
-          }
-
-          frameGame (ctx, alpha)  {
-
-              let height = constants.NODE_HEIGHT;
-              let width = constants.NODE_WIDTH;
-
-              // draw the box
-              ctx.textAlign = "Left";
-              ctx.lineWidth = 1;
-              var borderColor = chroma(this.TheBracket.Preferences.GetGameBorderColor());
-              ctx.strokeStyle = borderColor;
-
-
-              ctx.clearRect(this.x, this.y, width, height);
-              ctx.strokeRect(this.x, this.y, width, height);
-              ctx.strokeRect(this.x, this.y, width - 25, height);
-              var bkColor;
-              if (this.isLosersSide) {
-                  bkColor = chroma(this.TheBracket.Preferences.GetGameLosersBackgroundColor());
-              } else {
-                  bkColor = chroma(this.TheBracket.Preferences.GetGameWinnersBackgroundColor());
-              }
-              ctx.fillStyle = bkColor.alpha(alpha);
-              ctx.strokeStyle = bkColor.alpha(alpha);
-              ctx.fillRect(this.x+1, this.y+1, width - 2,height - 2);
-
-
-              var clr1 = chroma(this.TheBracket.Preferences.GetSlot1BGColor());
-              ctx.fillStyle = clr1.alpha(alpha);
-              ctx.strokeStyle = clr1.alpha(alpha);
-              ctx.fillRect(this.x+1, this.y+1, width - 26,height / 2 - 2);
-
-              var clr2 = chroma(this.TheBracket.Preferences.GetSlot2BGColor());
-              ctx.fillStyle = clr2.alpha(alpha);
-              ctx.strokeStyle = clr2.alpha(alpha);
-              ctx.fillRect(this.x+1, this.y + 1 + (height / 2), width - 26, height / 2 - 2);
-
-              ctx.fillStyle = borderColor.alpha(alpha);
-              ctx.beginPath();
-              ctx.moveTo(this.x, this.y + height/2);
-              ctx.lineTo(this.x + width - 25, this.y + height / 2);
-              ctx.closePath();
-              ctx.stroke();
-
-/*
-              var clr;
-              if (this.isLosersSide) {
-                  clr = chroma(COLORS.LosersGameIdBackgroundColor);
-              } else {
-                  clr = chroma(COLORS.GameIDBackgroundColor);
-              }
-              */
-
-              //ctx.fillRect(width - 23,  1, 22, height - 2);
-//              ctx.strokeRect(this.x, this.y, width - 24, constants.NODE_HEIGHT);
-//              ctx.fillRect(this.x + 1, this.y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
-//              ctx.fillStyle = color2.alpha(alpha);
-    //          ctx.fillRect(x + 1, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
-//              ctx.beginPath();
- //             ctx.moveTo(0,height/2);
- ///             ctx.lineTo(width - 24, height / 2);
-  //            ctx.closePath();
-  //            ctx.stroke();
-
-/*
-              ctx.strokeStyle = this.TheBracket.Preferences.GetGameBorderColor();
-
-              ctx.fillStyle = clr1.alpha(alpha);
-              let reversed = false;
-              if (reversed) {
-                  ctx.strokeRect(x + 24, y, width - 24, constants.NODE_HEIGHT);
-                  ctx.fillRect(x + 25, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
-                  ctx.fillStyle = color2.alpha(alpha);
-                  ctx.fillRect(x + 25, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
-              } else {
-                  ctx.strokeRect(x, y, width - 24, constants.NODE_HEIGHT);
-                  ctx.fillRect(x + 1, y + 1, width - 26, constants.NODE_HEIGHT / 2 - 2);
-                  ctx.fillStyle = color2.alpha(alpha);
-                  ctx.fillRect(x + 1, y + 1 + (constants.NODE_HEIGHT / 2), width - 26, constants.NODE_HEIGHT / 2 - 2);
-              }
-*/
-
-
+        this.renderGameId(ctx,false);
+        if (selection != null && (selection.node.Id == this.Id)) {
+            this.highlight(ctx, false)
+        }
     }
 
 
-              /*
-				 columns:   A list of column starting points
-			   */
-          renderRightToLeft (ctx, x, y, level, degree, selection, columns) {
+    renderGameId (ctx, reversed) {
+        let width = constants.NODE_WIDTH;
 
-              this.x = x;
-              this.y = y;
-              this.renderGame(ctx, selection);
+        ctx.textAlign = "center";
+        ctx.font = "15px Arial";
+        ctx.fontWeight = "bold";
+        if (reversed) {
+            ctx.strokeText(this.Id, this.x+12, this.y + (constants.NODE_HEIGHT / 2 + 6));
+        } else {
+            ctx.strokeText(this.Id, this.x + width - 12, this.y + (constants.NODE_HEIGHT / 2 + 6))
+        }
 
-/*
-              var width = constants.NODE_WIDTH;
+    }
 
-              let lev = level;
-              var space = constants.NODE_SPACE;
-              var left = x - (space/2);
-              let col = {left: x-(space/2), width: width+space, level: lev};
+    renderPlayerIndicator (ctx, slot, winningSlot) {
 
-              if (this.isLosersSide) {
-                  if (!columns.losers.has(lev)) {
-                      columns.losers.set(lev, col);
-                  }
-              } else {
-                  if (left < columns.leftMostWinner) {
-                      columns.leftMostWinner = col;
-                  }
-                  if (!columns.winners.has(lev)) {
-                      columns.winners.set(lev, col);
-                  }
-              }
-              */
+        let width = constants.NODE_WIDTH
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
 
-              /*
+        let display = "TBD"
+        display = this.getDisplay(slot);
 
-              ctx.strokeStyle = chroma(this.TheBracket.Preferences.GetGameBorderColor());
+        var clr = null;
 
-              var alpha = 1.0;
-              var brighten = 1;
-              if (this.game.state.result != null) {
-                  //ctx.strokeStyle = chroma("black").brighten(3);
-                  alpha = 0.6;
-                  brighten = 1;
-              }
+        if (display.startsWith(">>") === true) {
+            clr = chroma(constants.COLOR_1);
+        } else {
+            clr = chroma(this.TheBracket.Preferences.GetGameFontColor())
+        }
+        ctx.strokeStyle = clr;
+        ctx.fillStyle = clr;
 
-              this.x = x;
-              this.y = y;
+        if (winningSlot != 0) {
+            if (winningSlot == slot) {
+                ctx.font = "20px Arial";
+                ctx.fontWeight = "bold";
+                clr = chroma(this.TheBracket.Preferences.GetGameWinnersFontColor())
+                ctx.fillStyle = clr;
+                display = "*" + display ;
+            } else {
+                ctx.fontWeight = "lighter";
+                ctx.font = "13px Arial";
+                clr = chroma(this.TheBracket.Preferences.GetGameLosersFontColor())
+                ctx.fillStyle = clr;
+            }
+            ctx.strokeStyle = chroma("black");
+        }
 
-              this.frameBox(ctx, x, y, alpha, this.upperBGColor, this.lowerBGColor, false);
+        var yoffset = 0;
+        if (slot == 1) {
+            yoffset = (constants.NODE_HEIGHT / 2) - 5;
+        } else {
+            yoffset = (constants.NODE_HEIGHT) - 5;
+        }
+        ctx.strokeText(display, this.x + ((width - 24) / 2), this.y + yoffset);
+        ctx.fillText(display, this.x + ((width - 24) / 2), this.y + yoffset);
+    }
 
+    frameGame (ctx, darken)  {
 
-              var clr
-              if (this.isLosersSide) {
-                  clr = this.losersGameIdBGColor;
-              } else {
-                  clr = this.gameIdBGColor
-              }
+        let height = constants.NODE_HEIGHT;
+        let width = constants.NODE_WIDTH;
 
-              this.fillBox(ctx, x, y, alpha, clr, false);
-
-              if (selection != null && (selection.node.Id == this.Id)) {
-                  this.highlight(ctx, x, y, false)
-              }
-
-              var winningSlot = 0;
-              if (this.game.state.result != null) {
-                  winningSlot = this.game.state.result.winningSlot;
-              }
-
-              this.drawPlayerIndicator(ctx, x, y, 1, false, winningSlot);
-              this.drawPlayerIndicator(ctx, x, y, 2, false, winningSlot);
-
-
-              if (this.game.state.result != null) {
-                  ctx.strokeStyle = chroma(constants.COLOR_17);
-              } else {
-                 ctx.strokeStyle = chroma(constants.COLOR_17);
-              }
-
-              this.drawID(ctx, x, y, false);
+        // draw the box
+        ctx.textAlign = "Left";
+        ctx.lineWidth = 1;
+        var borderColor = chroma(this.TheBracket.Preferences.GetGameBorderColor());
+        //ctx.strokeStyle = borderColor;
+        ctx.strokeStyle = chroma("black");
 
 
-              let slot1Participant = this.participant1
-              let slot2Participant = this.participant2
-              */
-
-              let leftDepth = 0, rightDepth = 0;
-              var brighten = 1;
-              let width = constants.NODE_WIDTH;
-              var space = constants.NODE_SPACE;
-              if (this.left) {
-
-                    ctx.strokeStyle = this.connectorColor.brighten(brighten)
-
-                    var leftY = y - this.left.span.lower;
-                        drawSegment(ctx,
-                        x - space,
-                        leftY + (constants.NODE_HEIGHT / 2),
-                        x,
-                        y + (constants.NODE_HEIGHT / 4))
-
-                    leftDepth = this.left.renderRightToLeft(ctx,
-                        x - width - space,
-                        leftY,
-                        level + 1, degree, selection, columns)
-              }
+        ctx.clearRect(this.x, this.y, width, height);
+        ctx.strokeRect(this.x, this.y, width, height);
+        var bkColor;
+        if (this.isLosersSide) {
+            bkColor = chroma(this.TheBracket.Preferences.GetGameLosersBackgroundColor());
+        } else {
+            bkColor = chroma(this.TheBracket.Preferences.GetGameWinnersBackgroundColor());
+        }
+        ctx.fillStyle = bkColor.darken(darken);
+        ctx.fillRect(this.x + width - 25,  this.y+1, 24, height - 2);
 
 
-              if (this.right) {
+        var clr1 = chroma(this.TheBracket.Preferences.GetSlot1BGColor());
+        ctx.fillStyle = clr1.darken(darken);
+        ctx.fillRect(this.x+1, this.y+1, width - 26,height / 2 - 2);
+
+        var clr2 = chroma(this.TheBracket.Preferences.GetSlot2BGColor());
+        ctx.fillStyle = clr2.darken(darken);
+        ctx.fillRect(this.x+1, this.y + 1 + (height / 2), width - 26, height / 2 - 2);
+
+        ctx.strokeStyle = chroma("black");
+
+        ctx.strokeRect(this.x+width-26, this.y, 26, height);
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y + height/2);
+        ctx.lineTo(this.x + width - 25, this.y + height / 2);
+        ctx.closePath();
+        ctx.stroke();
+
+    }
+
+    renderRightToLeft (ctx, x, y, selection) {
+
+        this.x = x;
+        this.y = y;
+        this.renderGame(ctx, selection);
+
+        let leftDepth = 0, rightDepth = 0;
+        let width = constants.NODE_WIDTH;
+        var space = constants.NODE_SPACE;
+        if (this.left) {
+
+            ctx.strokeStyle = this.connectorColor;
+
+            var leftY = y - this.left.span.lower;
+                drawSegment(ctx,
+                x - space,
+                leftY + (constants.NODE_HEIGHT / 2),
+                x,
+                y + (constants.NODE_HEIGHT / 4))
+
+            leftDepth = this.left.renderRightToLeft(ctx,
+                x - width - space,
+                leftY, selection)
+        }
+
+        if (this.right) {
 
 
-                    ctx.strokeStyle = this.connectorColor.brighten(brighten);
+            ctx.strokeStyle = this.connectorColor;
 
-                    var rightY = y + this.right.span.upper;
+            var rightY = y + this.right.span.upper;
 
-                    drawSegment(ctx,
-                        x - space,
-                        rightY + (constants.NODE_HEIGHT / 2),
-                        x,
-                        y + ((constants.NODE_HEIGHT / 4) * 3))
+            drawSegment(ctx,
+                x - space,
+                rightY + (constants.NODE_HEIGHT / 2),
+                x,
+                y + ((constants.NODE_HEIGHT / 4) * 3))
 
-                    rightDepth = this.right.renderRightToLeft(ctx,
-                        x - width - space, rightY, level + 1, degree, selection, columns)
+            rightDepth = this.right.renderRightToLeft(ctx,
+                x - width - space, rightY, selection)
 
-              }
+        }
 
-//              this.drawPlayerIndicator(ctx, x, y,width, 1, false, winningSlot);
-//              this.drawPlayerIndicator(ctx, x, y,width, 2, false, winningSlot);
+        if ((leftDepth == 0) && (rightDepth == 0)) {
+            return 1
+        }
+        return Math.max(leftDepth, rightDepth) + 1
 
-              if ((leftDepth == 0) && (rightDepth == 0)) {
-                  return 1
-              }
-              return Math.max(leftDepth, rightDepth) + 1
-          }
+    }
 
-          getDisplay (slot) {
+    getDisplay (slot) {
 
-                if (slot == 1) {
+        if (slot == 1) {
 
-                    if (this.isLosersSide) {
-                        if (this.participant1 != 0) {
-                            return this.playerName(this.participant1)
-                        } else if (this.dropGame1 != 0) {
-                            return "L"+this.dropGame1
-                        }
-                    } else {
-                        if (this.participant1 != 0) {
-                            return this.playerName(this.participant1)
-                        }
-                        /*
-                        if (this.dropGame1 != 0) {
-                            var prefix = ">> L";
-                            return prefix + this.dropGame1.toString();
-                        }
-                        */
-                    }
-
-                    return "";
-//                  var pos = "x: " + this.x + ", y: " + this.y;
-//                  return pos
-                } else {
-
-                    if (this.isLosersSide) {
-                        if (this.participant2 != 0) {
-                            return this.playerName(this.participant2)
-                        } else if (this.dropGame2 != 0) {
-                            return "L"+this.dropGame2
-                        }
-                    } else  {
-                        if (this.participant2 != 0) {
-                            return this.playerName(this.participant2)
-                        }
-                        /*if (this.dropGame2 != 0) {
-                            var prefix = ">> L";
-                            return prefix + this.dropGame2.toString();
-                        }
-                        */
-                    }
+            if (this.isLosersSide) {
+                if (this.participant1 != 0) {
+                    return this.playerName(this.participant1)
+                } else if (this.dropGame1 != 0) {
+                    return "L"+this.dropGame1
                 }
-              return ""
-          }
+            } else {
+                if (this.participant1 != 0) {
+                    return this.playerName(this.participant1)
+                }
+            }
 
-          SetSelection (value) {
-              this.selection = value
-          }
+            return "";
+        } else {
+
+            if (this.isLosersSide) {
+                if (this.participant2 != 0) {
+                    return this.playerName(this.participant2)
+                } else if (this.dropGame2 != 0) {
+                    return "L"+this.dropGame2
+                }
+            } else  {
+                if (this.participant2 != 0) {
+                    return this.playerName(this.participant2)
+                }
+            }
+        }
+        return ""
+    }
+
+    SetSelection (value) {
+        this.selection = value
+    }
 
 
-          IntersectGame (x, y) {
-              if ((x > this.x && x < this.x + this.width) &&
-                  (y > this.y && y < this.y + constants.NODE_HEIGHT)) {
-                  return {node: this}
-              }
+    IntersectGame (x, y) {
+        if ((x > this.x && x < this.x + this.width) &&
+            (y > this.y && y < this.y + constants.NODE_HEIGHT)) {
+            return {node: this}
+        }
 
-              if (this.right != null) {
-                  var result = this.right.IntersectGame(x, y)
-                  if (result != null) {
-                      return result
-                  }
-              }
-              if (this.left != null) {
-                  var result = this.left.IntersectGame(x, y)
-                  if (result != null) {
-                      return result
-                  }
-              }
-              return null;
+        if (this.right != null) {
+            var result = this.right.IntersectGame(x, y)
+            if (result != null) {
+                return result
+            }
+        }
+        if (this.left != null) {
+            var result = this.left.IntersectGame(x, y)
+            if (result != null) {
+                return result
+            }
+        }
+        return null;
 
-          }
+    }
 
-      }
+}
 
 
  function DefaultPreferences() {
 
      let prefs = {
     "brackets.background-color": "#E4DEDD",
-	"brackets.connector-color": "#F64740",
+	"brackets.connector-color": "#efdf20",
 	"brackets.game.border-color": "#1F1C21",
-	"brackets.game.slot1.background-color": "#C4D6B0",
-	"brackets.game.slot2.background-color": "#477998",
+	"brackets.game.slot1.background-color": "#765350",
+	"brackets.game.slot2.background-color": "#2269a0",
 	"brackets.game.slot1.font-color": "#221C1B",
 	"brackets.game.slot2.font-color": "#221C1B",
-	"brackets.game.font-color": "#221C1B",
-	"brackets.game.winners.font-color": "#291F1E",
-	"brackets.game.losers.font-color": "#F6F4F3",
-	"brackets.game.winners.background-color": "#F64740",
-	"brackets.game.losers.background-color": "#A3333D"}
+	"brackets.game.font-color": "#e8e9e8",
+	"brackets.game.winners.font-color": "#f9eFeE",
+	"brackets.game.losers.font-color": "#2249a3",
+	"brackets.game.winners.background-color": "#d62720",
+	"brackets.game.losers.background-color": "#2333aD"}
 
      let p = new Preferences(prefs)
      return p
 
  }
-  class Preferences {
+
+class Preferences {
 
     prefs: {}
     constructor (prefs) {
@@ -1142,196 +816,163 @@ class Bracket {
 
 }
 
-    export default defineComponent({
-        name: 'Bracket',
-        inject: ['router'],
-        props: {
-            currentTab: String,
-            tournamentId: Number,
+export default defineComponent({
+    name: 'Bracket',
+    inject: ['router'],
+    props: {
+        currentTab: String,
+        tournamentId: Number,
 
-        },
-        watch: {
-            currentTab(val) {
-                if (val == 'Bracket') {
-                    this.activateTab()
-                }
+    },
+    watch: {
+        currentTab(val) {
+            if (val == 'Bracket') {
+                this.activateTab()
             }
-
-        },
-        setup() {
-
-/*
-            const $q = useQuasar()
-
-            // Requesting fullscreen mode:
-            $q.fullscreen.request()
-                .then(() => {
-                // success!
-                })
-                .catch(err => {
-                // oh, no!!!
-                })
-
-            // Exiting fullscreen mode:
-            $q.fullscreen.exit()
-                .then(() => {
-                // success!
-                })
-                .catch(err => {
-                // oh, no!!!
-                })
-
-*/
-        } ,
-
-        data: function() {
-            return {
-                preferences: null,
-                bracket: null,
-                isLoading: true,
-                error: "",
-                tournament: {id:0} as Tournament
-            }
-        },
-
-        mounted: function() {
-            //console.log("Bracket mounted")
-
-             let cmp = this
-                  cmp.activateTab()
-
-        },
-
-        updated() {
-
-        },
-
-
-        methods: {
-            createBracket() {
-                //console.log("createBracket")
-                let cmp = this;
-                let url = "/tournaments/" + cmp.tournamentId+"/generate"
-                axiosApiInstance.put(url)
-                    .then(function (response) {
-                        cmp.tournament = response.data
-                        theBracket = new Bracket(cmp.tournament, cmp.preferences)
-                        theBracket.setup()
-                        theBracket.update(response.data)
-                    })
-                    .catch(function (error) {
-                        cmp.error = error.toString()
-                        ronsole.log(error);
-                    })
-                    .then(function () {
-                        cmp.isLoading = false
-                });
-            },
-            activateTab() {
-                
-                
-                let promise1 = this.fetchPreferences()
-                let promise2 = this.fetchTournament()
-                var cmp = this
-                Promise.all([promise1, promise2]).then(function() {
-
-                    if (cmp.tournament != null) {
-
-                        if (cmp.tournament['tournamentState'] == 'Registration' || 
-                             cmp.tournament['bracket']['root'] == null) {
-                            cmp.createBracket()
-                        } else {
-                            theBracket = new Bracket(cmp.tournament, cmp.preferences)
-                            theBracket.setup()
-                            theBracket.update(cmp.tournament)
-                        }
-                    } else {
-                        console.log("No Tournament")
-                    }
-                })
-
-            },
-
-            fetchPreferences() {
-                let cmp = this;
-                let url = "/preferences"
-
-                return axiosApiInstance.get(url)
-                    .then(function (response) {
-                        cmp.preferences = response.data
-                    })
-                    .catch(function (error) {
-                    // handle error
-                        console.log(error);
-                    })
-                    .then(function () {
-                    });
-            },    
-            fetchTournament() {
-
-                let cmp = this;
-                let url = "/tournaments/" + cmp.tournamentId
-                return axiosApiInstance.get(url)
-                    .then(function (response) {
-                        cmp.tournament = response.data
-                    })
-                    .catch(function (error) {
-                        cmp.error = error.toString()
-                        console.log(error);
-                    })
-                    .then(function () {
-                        cmp.isLoading = false
-                    });
-            },
-            Shuffle() {
-                let cmp = this;
-                let url = "/tournaments/" + cmp.tournamentId + "/randomize"
-                return axiosApiInstance.put(url)
-                    .then(function (response) {
-                        cmp.fetchTournament().then(function() {
-                            cmp.createBracket()
-                        })
-                    })
-                    .catch(function (error) {
-                        cmp.error = error.toString()
-                        console.log(error);
-                    })
-                    .then(function () {
-                    });
-
-
-            },
-            toggleFullscren (e) {
-                const target = e.target.parentNode.parentNode.parentNode
-
-                $q.fullscreen.toggle(target)
-                .then(() => {
-                    // success!
-                })
-                .catch((err) => {
-                    alert(err)
-                    // uh, oh, error!!
-                    // console.error(err)
-                })
-            }
-        }, 
-        computed: {
-
-             GamesRemaining() {
-                 /*
-                 if (this.tournament != null) {
-                    let val = ((2*this.tournament.participants.length)-1) - this.tournament.gamesPlayed
-                    val.toString()
-                 } 
-                 */
-                 return "?"
-             }
-
         }
 
-         
+    },
 
-    })
+    data: function() {
+        return {
+            preferences: null,
+            bracket: null,
+            isLoading: true,
+            error: "",
+            tournament: {id:0} as Tournament
+        }
+    },
+
+    mounted: function() {
+        let cmp = this
+        cmp.activateTab()
+    },
+
+    updated() {
+
+    },
+
+
+    methods: {
+        createBracket() {
+            //console.log("createBracket")
+            let cmp = this;
+            let url = "/tournaments/" + cmp.tournamentId+"/generate"
+            axiosApiInstance.put(url)
+                .then(function (response) {
+                    cmp.tournament = response.data
+                    theBracket = new Bracket(cmp.tournament, cmp.preferences)
+                    theBracket.setup()
+                    theBracket.update(response.data)
+                })
+                .catch(function (error) {
+                    cmp.error = error.toString()
+                })
+                .then(function () {
+                    cmp.isLoading = false
+            });
+        },
+        activateTab() {
+            
+            
+            let promise1 = this.fetchPreferences()
+            let promise2 = this.fetchTournament()
+            var cmp = this
+            Promise.all([promise1, promise2]).then(function() {
+
+                if (cmp.tournament != null) {
+
+                    if (cmp.tournament['tournamentState'] == 'Registration' || 
+                            cmp.tournament['bracket']['root'] == null) {
+                        cmp.createBracket()
+                    } else {
+                        theBracket = new Bracket(cmp.tournament, cmp.preferences)
+                        theBracket.setup()
+                        theBracket.update(cmp.tournament)
+                    }
+                } else {
+                    console.log("No Tournament")
+                }
+            })
+
+        },
+
+        fetchPreferences() {
+            let cmp = this;
+            let url = "/preferences"
+
+            return axiosApiInstance.get(url)
+                .then(function (response) {
+                    cmp.preferences = response.data
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+                .then(function () {
+                });
+        },    
+        fetchTournament() {
+
+            let cmp = this;
+            let url = "/tournaments/" + cmp.tournamentId
+            return axiosApiInstance.get(url)
+                .then(function (response) {
+                    cmp.tournament = response.data
+                })
+                .catch(function (error) {
+                    cmp.error = error.toString()
+                    console.log(error);
+                })
+                .then(function () {
+                    cmp.isLoading = false
+                });
+        },
+        Shuffle() {
+            let cmp = this;
+            let url = "/tournaments/" + cmp.tournamentId + "/randomize"
+            return axiosApiInstance.put(url)
+                .then(function (response) {
+                    cmp.fetchTournament().then(function() {
+                        cmp.createBracket()
+                    })
+                })
+                .catch(function (error) {
+                    cmp.error = error.toString()
+                    console.log(error);
+                })
+                .then(function () {
+                });
+
+
+        },
+        toggleFullscren (e) {
+            const target = e.target.parentNode.parentNode.parentNode
+
+            $q.fullscreen.toggle(target)
+            .then(() => {
+            })
+            .catch((err) => {
+                alert(err)
+            })
+        }
+    }, 
+    computed: {
+
+            GamesRemaining() {
+                /*
+                if (this.tournament != null) {
+                let val = ((2*this.tournament.participants.length)-1) - this.tournament.gamesPlayed
+                val.toString()
+                } 
+                */
+                return "?"
+            }
+
+    }
+
+        
+
+})
 
 </script>
 
@@ -1339,28 +980,10 @@ class Bracket {
 <template>
 
 <div>
-  <!--
-  <div class="row" style="margin-bottom: 8px">
-    <div class="col-grow">
-      Games Remaining <q-badge color="primary"> {{ GamesRemaining }} </q-badge>
-    </div>
-    <div class="col-grow">
-      <q-btn
-        v-on:click="Shuffle"
-        push
-        color="primary"
-        label="Randomize..."
-      ></q-btn>
-    </div>
-  </div>
-    -->
 
   <div id="bracket-panel" class="container">
     <div id="main-bracket-div">
       <div id="bracket-div" style="position: static">
-        <!--
-                <div class="col-12 px-0 vw-100">
-                    <div class="row no-gutters" style="margin: auto;">-->
         <canvas id="bracket-canvas" style="margin: 0px"></canvas>
         <!--
                         <input id="fullscreen_div" type="image" src="/Fullscreen.png"

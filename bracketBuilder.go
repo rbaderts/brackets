@@ -209,16 +209,13 @@ func (this *Bracket) GenerateEmptyDoubleElimBracket(
 
 	dropNodes := make([]NodeId, 0)
 
-	extras := len(participants) - this.Size/2
-	Logger.Infof("extras = %d, loserFirstLevelGames = %d\n", extras, firstLevelGames)
+	//	extras := len(participants) - this.Size/2
+	//	Logger.Infof("extras = %d, loserFirstLevelGames = %d\n", extras, firstLevelGames)
 	gameWidth = this.Size / 4
 	if firstLevelGames > gameWidth {
 		firstLevelGames = firstLevelGames - gameWidth
 	}
 	count := firstLevelGames
-	//fmt.Printf("count = %d\n", count)
-	//fmt.Printf("Size = %d\n", this.Size)
-	//fmt.Printf("Participants = %d\n", len(this.Participants))
 	gameQ = new(NodeQueue)
 	iteration = 1
 
@@ -226,20 +223,23 @@ func (this *Bracket) GenerateEmptyDoubleElimBracket(
 	width := this.Size / 4
 
 	useDrops := true
+	//fmt.Printf("firstLevelGames = %d, gameWidth = %d\n", firstLevelGames, gameWidth)
+	//fmt.Printf("firstRoundGames = %d, width = %d\n", firstRoundGames, width)
+
 	for {
 
-		//fmt.Printf("totalGames = %d, gamesLeft = %d, calcedGamesLeft=%d\n", totalGames, gamesLeft, calcedGamesLeft)
-		//fmt.Printf("iteration: %d, count = %d, gamWidth = %d\n", iteration, count, gameWidth)
 		var drops []NodeId
 
 		if iteration == 1 {
 			count = firstRoundGames % width
-			firstRoundGames -= count
+			if count == 0 {
+				count = firstLevelGames
+			}
 		} else if iteration == 2 {
-			if firstRoundGames == width {
-				count = width
-			} else {
+			if firstRoundGames-count < width {
 				count = width / 2
+			} else {
+				count = width
 			}
 		} else {
 			if dropQ.Size() > gameQ.Size() {
@@ -253,15 +253,8 @@ func (this *Bracket) GenerateEmptyDoubleElimBracket(
 				}
 			}
 		}
-		//fmt.Printf("iteration: %d, games = %d\n", iteration, count)
 		gameQ, drops = this.GenerateLosersGames(dropQ, gameQ, 0, count, useDrops)
 		useDrops = true
-		//		gamesLeft -= gameQ.Size()
-		//		if iteration == 1 {
-		//			count = gameWidth
-		//		} else {
-		//			count = count / 2
-		// }
 
 		dropNodes = append(dropNodes, drops...)
 		if gameQ.Size() == 1 && dropQ.Size() == 0 {
@@ -273,9 +266,6 @@ func (this *Bracket) GenerateEmptyDoubleElimBracket(
 	losersRoot := gameQ.Remove()
 	losersRoot.SubType = LOSERS_ROOT
 	losersRoot.Level = 2
-
-	//	fmt.Printf("LosersRoot: \n%s\n", losersRoot.PrintTree())
-	//	fmt.Printf("DropNdoes %v\n", dropNodes)
 
 	root := new(Node)
 	root.Id = this.Context.IdCounter
@@ -464,7 +454,6 @@ func (this *Bracket) findAddLocation(participantMap map[ParticipantNumber]*Parti
 
 func (this *Bracket) AddParticipantIfAble(participantMap map[ParticipantNumber]*Participant, participantNumber ParticipantNumber) bool {
 
-	//fmt.Printf("%s\n", this.Root.PrintTree())
 	// Winners Side
 	node := this.Root.Left.node
 	match := this.findAddLocation(participantMap, node)
@@ -476,10 +465,7 @@ func (this *Bracket) AddParticipantIfAble(participantMap map[ParticipantNumber]*
 	// Setup new game node and move player down to it
 
 	var newGame *Node
-	//fmt.Printf("Before: %s", this.Root.Left.node.PrintTree())
-	//fmt.Printf("match: %v", match)
 	existingDrop := this.GetNode(match.Drop)
-	//fmt.Printf("Done \n")
 
 	newGame = this.newNode(GAME, match, 0, 0, 1, match.Level+1)
 	//fmt.Printf("newGame = %v\n", newGame)
@@ -502,12 +488,7 @@ func (this *Bracket) AddParticipantIfAble(participantMap map[ParticipantNumber]*
 	//fmt.Printf("Setup new winners-side game\n")
 	//fmt.Printf("After %s", this.Root.Left.node.PrintTree())
 
-	///	losersMatch := this.findLosersSpot(participantNumber, this.Root.Right.node, newGame)
-
 	var newLosersGame *Node
-	//	if losersMatch == nil {
-	//		return false
-	//	}
 
 	///fmt.Printf("Setup new losers-side game\n")
 	//fmt.Printf("Before: %s", this.Root.Right.node.PrintTree())
@@ -556,16 +537,6 @@ func (this *Tournament) DeleteParticipantIfAble(
 	this.AddResult(session, node, side)
 	return true
 }
-
-/*
-		if node != nil {
-			parentGame := node.Parent.node
-			if (parentGame)
-		}
-
-}
-
-*/
 
 func (this *Bracket) findParticipantNode(node *Node, num ParticipantNumber) *Node {
 	if node.Type == PLAYER && node.Participant == num {

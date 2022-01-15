@@ -232,19 +232,18 @@ func (this *Preferences) GetPreferences(name string) map[string]string {
 func DefaultPreferences() *Preferences {
 
 	prefs := NewPreferences()
-
-	prefs.AddPreference("brackets.background-color", "#E4DEDD")
-	prefs.AddPreference("brackets.connector-color", "#F64740")
-	prefs.AddPreference("brackets.game.border-color", "#1F1C21")
-	prefs.AddPreference("brackets.game.slot1.background-color", "#C4D6B0")
-	prefs.AddPreference("brackets.game.slot2.background-color", "#477998")
+	prefs.AddPreference("brackets.background-color", "#F8FEFD")
+	prefs.AddPreference("brackets.connector-color", "#6f9f20")
+	prefs.AddPreference("brackets.game.border-color", "#000000")
+	prefs.AddPreference("brackets.game.slot1.background-color", "#c6c3e0")
+	prefs.AddPreference("brackets.game.slot2.background-color", "#Fff3FF")
 	prefs.AddPreference("brackets.game.slot1.font-color", "#221C1B")
 	prefs.AddPreference("brackets.game.slot2.font-color", "#221C1B")
-	prefs.AddPreference("brackets.game.font-color", "#221C1B")
-	prefs.AddPreference("brackets.game.winners.font-color", "#291F1E")
-	prefs.AddPreference("brackets.game.losers.font-color", "#F6F4F3")
-	prefs.AddPreference("brackets.game.winners.background-color", "#F64740")
-	prefs.AddPreference("brackets.game.losers.background-color", "#A3333D")
+	prefs.AddPreference("brackets.game.font-color", "#000000")
+	prefs.AddPreference("brackets.game.winners.font-color", "#000000")
+	prefs.AddPreference("brackets.game.losers.font-color", "#000000")
+	prefs.AddPreference("brackets.game.winners.background-color", "#e62720")
+	prefs.AddPreference("brackets.game.losers.background-color", "#2333cD")
 
 	return prefs
 
